@@ -505,6 +505,16 @@ angular
         },
       };
 
+      var confidentialComputing = {
+        name: "portainer.confidential-computing",
+        url: '/confidential-computing',
+        views: {
+          'content@':{
+            component: 'confidentialComputingView',
+          }
+        }
+      }
+
       $stateRegistryProvider.register(root);
       $stateRegistryProvider.register(endpointRoot);
       $stateRegistryProvider.register(portainer);
@@ -544,6 +554,7 @@ angular
       $stateRegistryProvider.register(user);
       $stateRegistryProvider.register(teams);
       $stateRegistryProvider.register(team);
+      $stateRegistryProvider.register(confidentialComputing);
     },
   ]);
 
