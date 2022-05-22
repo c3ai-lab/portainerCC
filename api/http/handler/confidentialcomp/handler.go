@@ -9,13 +9,13 @@ import (
 	"github.com/portainer/portainer/api/http/security"
 )
 
-// Handler is the HTTP handler used to handle role operations.
+// Handler is the HTTP handler used to handle confidential compute operations.
 type Handler struct {
 	*mux.Router
 	DataStore dataservices.DataStore
 }
 
-// NewHandler creates a handler to manage role operations.
+// NewHandler creates a handler to manage sgx-keys.
 func NewHandler(bouncer *security.RequestBouncer) *Handler {
 	h := &Handler{
 		Router: mux.NewRouter(),

@@ -718,6 +718,9 @@ type (
 	// ResourceControlType represents the type of resource associated to the resource control (volume, container, service...)
 	ResourceControlType int
 
+	ConfCompute struct {
+	}
+
 	// Role represents a set of authorizations that can be associated to a user or
 	// to a team.
 	Role struct {

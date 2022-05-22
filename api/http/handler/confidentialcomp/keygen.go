@@ -19,11 +19,12 @@ import (
 // @failure 500 "Server error"
 func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
-	var x = "KeyGen"
+	// Keygenerierung initialisieren
+	err := handler.DataStore.ConfCompute().Create("Keyname")
 
-	/*if err != nil {
+	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to generate new key", err}
-	}*/
+	}
 
-	return response.JSON(w, x)
+	return response.JSON(w, err)
 }

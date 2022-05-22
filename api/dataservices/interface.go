@@ -36,6 +36,7 @@ type (
 		Registry() RegistryService
 		ResourceControl() ResourceControlService
 		Role() RoleService
+		ConfCompute() ConfComputeService
 		APIKeyRepository() APIKeyRepository
 		Settings() SettingsService
 		SSLSettings() SSLSettingsService
@@ -181,6 +182,11 @@ type (
 		Create(role *portainer.Role) error
 		UpdateRole(ID portainer.RoleID, role *portainer.Role) error
 		BucketName() string
+	}
+
+	// ConfComputeService for managing private keys
+	ConfComputeService interface {
+		Create(name string) error
 	}
 
 	// APIKeyRepositoryService
