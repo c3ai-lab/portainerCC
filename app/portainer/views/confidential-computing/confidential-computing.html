@@ -29,12 +29,13 @@
                     </div>
 
                     <div class="actionBar">
-                        <button type="button" class="btn btn-sm btn-primary" ui-sref="#" data-cy="#">
+                        <button type="button" class="btn btn-sm btn-primary" ng-click="$ctrl.generateKey()">
                             <i class="fa fa-plus space-right" aria-hidden="true"></i>Generate new private key
                         </button>
-                        <button type="button" class="btn btn-sm btn-primary" ui-sref="#" data-cy="#">
+                        <button type="button" class="btn btn-sm btn-primary" ng-click="$ctrl.importKey()">
                             <i class="fa fa-upload space-right" aria-hidden="true"></i>Import private key
                         </button>
+
                     </div>
                     <div class="p-5">
                         <div class="form-group">
