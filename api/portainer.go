@@ -2,6 +2,7 @@ package portainer
 
 import (
 	"context"
+	"crypto/rsa"
 	"io"
 	"time"
 
@@ -90,6 +91,14 @@ type (
 		NumberDevices int          `json:"numberDevices"`
 		DateCreated   int64        `json:"dateCreated"`
 	}
+
+	ConfCompute struct {
+		ID   ConfComputeID   `json:"id"`
+		Name string          `json:"name"`
+		Key  *rsa.PrivateKey `json:"key"`
+	}
+
+	ConfComputeID int
 
 	// CLIFlags represents the available flags on the CLI
 	CLIFlags struct {
@@ -717,9 +726,6 @@ type (
 
 	// ResourceControlType represents the type of resource associated to the resource control (volume, container, service...)
 	ResourceControlType int
-
-	ConfCompute struct {
-	}
 
 	// Role represents a set of authorizations that can be associated to a user or
 	// to a team.
