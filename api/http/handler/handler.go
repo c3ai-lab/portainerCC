@@ -6,6 +6,7 @@ import (
 
 	"github.com/portainer/portainer/api/http/handler/auth"
 	"github.com/portainer/portainer/api/http/handler/backup"
+	"github.com/portainer/portainer/api/http/handler/confidentialcomp"
 	"github.com/portainer/portainer/api/http/handler/customtemplates"
 	"github.com/portainer/portainer/api/http/handler/edgegroups"
 	"github.com/portainer/portainer/api/http/handler/edgejobs"
@@ -61,6 +62,7 @@ type Handler struct {
 	MOTDHandler            *motd.Handler
 	RegistryHandler        *registries.Handler
 	ResourceControlHandler *resourcecontrols.Handler
+	ConfComputeHandler     *confidentialcomp.Handler
 	RoleHandler            *roles.Handler
 	SettingsHandler        *settings.Handler
 	SSLHandler             *ssl.Handler
@@ -209,6 +211,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.ResourceControlHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/roles"):
 		http.StripPrefix("/api", h.RoleHandler).ServeHTTP(w, r)
+	case strings.HasPrefix(r.URL.Path, "/api/settings/sgx-keygen"):
+		http.StripPrefix("/api", h.ConfComputeHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/settings"):
 		http.StripPrefix("/api", h.SettingsHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/stacks"):

@@ -8,6 +8,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/dataservices/apikeyrepository"
+	"github.com/portainer/portainer/api/dataservices/confidentialcomp"
 	"github.com/portainer/portainer/api/dataservices/customtemplate"
 	"github.com/portainer/portainer/api/dataservices/dockerhub"
 	"github.com/portainer/portainer/api/dataservices/edgegroup"
@@ -55,6 +56,7 @@ type Store struct {
 	HelmUserRepositoryService *helmuserrepository.Service
 	RegistryService           *registry.Service
 	ResourceControlService    *resourcecontrol.Service
+	ConfComputeService        *confidentialcomp.Service
 	RoleService               *role.Service
 	APIKeyRepositoryService   *apikeyrepository.Service
 	ScheduleService           *schedule.Service
@@ -76,6 +78,12 @@ func (store *Store) initServices() error {
 		return err
 	}
 	store.RoleService = authorizationsetService
+
+	confComputeService, err := confidentialcomp.NewService(store.connection)
+	if err != nil {
+		return err
+	}
+	store.ConfComputeService = confComputeService
 
 	customTemplateService, err := customtemplate.NewService(store.connection)
 	if err != nil {
@@ -290,6 +298,11 @@ func (store *Store) Role() dataservices.RoleService {
 	return store.RoleService
 }
 
+// ConfCompute gives access to the Key Data Management Layer
+func (store *Store) ConfCompute() dataservices.ConfComputeService {
+	return store.ConfComputeService
+}
+
 // APIKeyRepository gives access to the api-key data management layer
 func (store *Store) APIKeyRepository() dataservices.APIKeyRepository {
 	return store.APIKeyRepositoryService
@@ -358,6 +371,7 @@ type storeExport struct {
 	Registry           []portainer.Registry           `json:"registries,omitempty"`
 	ResourceControl    []portainer.ResourceControl    `json:"resource_control,omitempty"`
 	Role               []portainer.Role               `json:"roles,omitempty"`
+	ConfCompute        []portainer.ConfCompute        `json:"confcompute,omitempty"`
 	Schedules          []portainer.Schedule           `json:"schedules,omitempty"`
 	Settings           portainer.Settings             `json:"settings,omitempty"`
 	SSLSettings        portainer.SSLSettings          `json:"ssl,omitempty"`

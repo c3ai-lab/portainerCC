@@ -22,6 +22,7 @@ type testDatastore struct {
 	resourceControl         dataservices.ResourceControlService
 	apiKeyRepositoryService dataservices.APIKeyRepository
 	role                    dataservices.RoleService
+	confCompute             dataservices.ConfComputeService
 	sslSettings             dataservices.SSLSettingsService
 	settings                dataservices.SettingsService
 	stack                   dataservices.StackService
@@ -60,6 +61,10 @@ func (d *testDatastore) Registry() dataservices.RegistryService { return d.regis
 func (d *testDatastore) ResourceControl() dataservices.ResourceControlService {
 	return d.resourceControl
 }
+
+// ConfComputeService
+func (d *testDatastore) ConfCompute() dataservices.ConfComputeService { return d.confCompute }
+
 func (d *testDatastore) Role() dataservices.RoleService { return d.role }
 func (d *testDatastore) APIKeyRepository() dataservices.APIKeyRepository {
 	return d.apiKeyRepositoryService

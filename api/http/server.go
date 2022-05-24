@@ -19,6 +19,7 @@ import (
 	"github.com/portainer/portainer/api/http/handler"
 	"github.com/portainer/portainer/api/http/handler/auth"
 	"github.com/portainer/portainer/api/http/handler/backup"
+	"github.com/portainer/portainer/api/http/handler/confidentialcomp"
 	"github.com/portainer/portainer/api/http/handler/customtemplates"
 	"github.com/portainer/portainer/api/http/handler/edgegroups"
 	"github.com/portainer/portainer/api/http/handler/edgejobs"
@@ -125,6 +126,10 @@ func (server *Server) Start() error {
 
 	var roleHandler = roles.NewHandler(requestBouncer)
 	roleHandler.DataStore = server.DataStore
+
+	// Handler for ConfidentialCompute
+	var confComputeHandler = confidentialcomp.NewHandler(requestBouncer)
+	confComputeHandler.DataStore = server.DataStore
 
 	var customTemplatesHandler = customtemplates.NewHandler(requestBouncer)
 	customTemplatesHandler.DataStore = server.DataStore
@@ -260,6 +265,7 @@ func (server *Server) Start() error {
 
 	server.Handler = &handler.Handler{
 		RoleHandler:            roleHandler,
+		ConfComputeHandler:     confComputeHandler,
 		AuthHandler:            authHandler,
 		BackupHandler:          backupHandler,
 		CustomTemplatesHandler: customTemplatesHandler,
