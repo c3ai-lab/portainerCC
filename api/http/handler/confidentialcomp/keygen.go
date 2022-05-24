@@ -1,7 +1,6 @@
 package confidentialcomp
 
 import (
-	"errors"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
@@ -20,11 +19,12 @@ import (
 // @failure 500 "Server error"
 func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
-	// Read query
-	name := r.PostFormValue("name")
+	// Read name value
+	r.ParseForm()
+	name := r.FormValue("name")
 
 	if name == "" {
-		return &httperror.HandlerError{http.StatusNotAcceptable, "The name parameter is missing", errors.New("Wrong syntax")}
+		name = "defaultKey"
 	}
 
 	// initialize Keygen
