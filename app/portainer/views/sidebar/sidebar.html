@@ -69,8 +69,13 @@
           <sidebar-menu-item path="portainer.registries" icon-class="fa-database fa-fw" class-name="sidebar-list"
             data-cy="portainerSidebar-registries" title="Registries">Registries</sidebar-menu-item>
 
-          <sidebar-menu-item path="portainer.confidential-computing" icon-class="fa-file-signature fa-fw" class-name="sidebar-list"
-            data-cy="portainerSidebar-confidential-computing" title="Confidential Computing">Conf Computing</sidebar-menu-item>
+          <sidebar-menu label="Key Management" icon-class="fa-key fa-fw" path="#" is-sidebar-open="toggle"
+            children-paths="['portainer.confidential-computing']">
+            <sidebar-menu-item path="portainer.confidential-computing" class-name="sidebar-sublist"
+              title="Enclave Signing">Enclave Signing</sidebar-menu-item>
+            <sidebar-menu-item path="#" class-name="sidebar-sublist" title="x1">Protected Files</sidebar-menu-item>
+            <sidebar-menu-item path="#" class-name="sidebar-sublist" title="x2">Remote Attestation</sidebar-menu-item>
+          </sidebar-menu>
 
           <sidebar-menu label="Authentication logs" icon-class="fa-history fa-fw" path="portainer.authLogs"
             is-sidebar-open="toggle" children-paths="['portainer.activityLogs']">
