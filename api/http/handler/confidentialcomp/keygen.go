@@ -1,11 +1,16 @@
 package confidentialcomp
 
 import (
+	"encoding/json"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
 )
+
+type KeyGenParams struct {
+	Name string
+}
 
 // @id SgxKeyGen
 // @summary Generate SGX-Key
@@ -19,20 +24,20 @@ import (
 // @failure 500 "Server error"
 func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
-	// Read name value
-	r.ParseForm()
-	name := r.FormValue("name")
+	// create JSON object
+	var params KeyGenParams
+	err := json.NewDecoder(r.Body).Decode(&params)
 
-	if name == "" {
-		name = "defaultKey"
+	if err != nil {
+		return &httperror.HandlerError{http.StatusBadRequest, "request body maleformed", err}
 	}
 
 	// initialize Keygen
-	err := handler.DataStore.ConfCompute().Create(name)
+	err = handler.DataStore.ConfCompute().Create(params.Name)
 
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to generate new key", err}
 	}
 
-	return response.JSON(w, "New key added: "+name)
+	return response.JSON(w, "New key added: "+params.Name)
 }

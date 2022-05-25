@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"errors"
 	"fmt"
+	"os"
 
 	portainer "github.com/portainer/portainer/api"
 )
@@ -40,7 +41,7 @@ func (service *Service) Create(name string) error {
 	// generate new rsa key
 	privatekey, err := rsa.GenerateKey(rand.Reader, 3072)
 	if err != nil {
-		fmt.Printf("Cannot generate RSA key\n")
+		fmt.Fprintf(os.Stderr, "Cannot generate RSA key\n")
 		return errors.New("Could not generate Key")
 	}
 
@@ -49,8 +50,6 @@ func (service *Service) Create(name string) error {
 		name,
 		privatekey,
 	}
-
-	fmt.Printf(privatekey.N.String())
 
 	return service.connection.CreateObject(
 		BucketName,
