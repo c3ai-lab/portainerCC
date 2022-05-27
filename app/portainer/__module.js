@@ -505,12 +505,12 @@ angular
         },
       };
 
-      var confidentialComputing = {
-        name: "portainer.confidential-computing",
-        url: '/confidential-computing',
+      var enclaveSigning = {
+        name: "portainer.enclave-signing",
+        url: '/enclave-signing',
         views: {
           'content@':{
-            component: 'confidentialComputingView',
+            component: 'enclaveSigningView',
           }
         }
       }
@@ -554,7 +554,7 @@ angular
       $stateRegistryProvider.register(user);
       $stateRegistryProvider.register(teams);
       $stateRegistryProvider.register(team);
-      $stateRegistryProvider.register(confidentialComputing);
+      $stateRegistryProvider.register(enclaveSigning);
     },
   ]);
 

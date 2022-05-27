@@ -1,0 +1,24 @@
+<rd-header>
+    <rd-header-title title-text="Enclave Signing">
+        <a data-toggle="tooltip" title="Refresh" ui-sref="portainer.confidential-computing"
+            ui-sref-opts="{reload: true}">
+            <i class="fa fa-sync" aria-hidden="true"></i>
+        </a>
+    </rd-header-title>
+    <rd-header-content>Manage your Signing Keys for building SGX enhanced containers</rd-header-content>
+</rd-header>
+
+<information-panel title-text="Information">
+    <span class="small text-muted">
+        Generate or import your Signing Keys.<br />
+        You can manage their access by adding teams and allowing them to use the key.
+    </span>
+</information-panel>
+
+
+<div class="row">
+    <div class="col-sm-12">
+        <keys-datatable title-text="Enclave Signing Keys" title-icon="fa-key" dataset="keys" table-key="keys" order-by="Name"
+            remove-action="removeAction"></keys-datatable>
+    </div>
+</div>

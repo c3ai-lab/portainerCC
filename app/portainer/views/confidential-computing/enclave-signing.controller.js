@@ -1,9 +1,9 @@
 import angular from 'angular';
 
-angular.module('portainer.app').controller('ConfidentialComputingController', ConfidentialComputingController);
+angular.module('portainer.app').controller('enclaveSigningController', enclaveSigningController);
 
 /* @ngInject */
-export default function ConfidentialComputingController(Notifications, $async, $http, $q) {
+export default function enclaveSigningController(Notifications, $async, $http, $q, $scope) {
   var ctrl = this;
 
   var deferred = $q.defer();
@@ -44,4 +44,11 @@ export default function ConfidentialComputingController(Notifications, $async, $
       console.log('async');
     });
   };
+
+  function initView(){
+    console.log("MOIN");
+    $scope.keys = [{name:"name1"}]
+  }
+
+  initView();
 }
