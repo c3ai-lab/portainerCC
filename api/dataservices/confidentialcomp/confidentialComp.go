@@ -51,11 +51,6 @@ func (service *Service) Create(name string) error {
 		privatekey,
 	}
 
-	// deleting all old keys
-	service.connection.DeleteAllObjects(BucketName, func(obj interface{}) (int, bool) {
-		return int(obj.(portainer.ConfCompute).ID), true
-	})
-
 	return service.connection.CreateObject(
 		BucketName,
 		func(id uint64) (int, interface{}) {
