@@ -8,6 +8,7 @@ import (
 	"os"
 
 	portainer "github.com/portainer/portainer/api"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -33,6 +34,29 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	return &Service{
 		connection: connection,
 	}, nil
+}
+
+// Keys return an array containing all the keys
+func (service *Service) Keys() ([]portainer.ConfCompute, error) {
+
+	var keys = make([]portainer.ConfCompute, 0)
+
+	err := service.connection.GetAll(
+		BucketName,
+		&portainer.ConfCompute{},
+		func(obj interface{}) (interface{}, error) {
+
+			key, ok := obj.(*portainer.ConfCompute)
+			if !ok {
+				logrus.WithField("obj", obj).Errorf("Failed to convert to ConfCompute object")
+				return nil, fmt.Errorf("Failed to convert to ConfCompute object: %s", obj)
+			}
+
+			keys = append(keys, *key)
+			return &portainer.ConfCompute{}, nil
+		})
+
+	return keys, err
 }
 
 // CreateKey creates a new private Key

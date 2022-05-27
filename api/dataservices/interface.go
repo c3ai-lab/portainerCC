@@ -186,6 +186,7 @@ type (
 
 	// ConfComputeService for managing private keys
 	ConfComputeService interface {
+		Keys() ([]portainer.ConfCompute, error)
 		Create(name string) error
 	}
 

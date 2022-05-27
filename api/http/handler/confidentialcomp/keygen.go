@@ -9,7 +9,8 @@ import (
 )
 
 type KeyGenParams struct {
-	Name string
+	Type        string
+	Description string
 }
 
 // @id SgxKeyGen
@@ -33,11 +34,23 @@ func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httpe
 	}
 
 	// initialize Keygen
-	err = handler.DataStore.ConfCompute().Create(params.Name)
+	err = handler.DataStore.ConfCompute().Create(params.Description)
 
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to generate new key", err}
 	}
 
-	return response.JSON(w, "New key added: "+params.Name)
+	return response.JSON(w, "New key added: "+params.Description)
+}
+
+func (handler *Handler) getKeys(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+
+	// get all keys
+	keys, err := handler.DataStore.ConfCompute().Keys()
+
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve key sets from the database", err}
+	}
+
+	return response.JSON(w, keys)
 }

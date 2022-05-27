@@ -20,8 +20,11 @@ func NewHandler(bouncer *security.RequestBouncer) *Handler {
 	h := &Handler{
 		Router: mux.NewRouter(),
 	}
-	h.Handle("/settings/sgx-keygen",
+	h.Handle("/settings/keys",
 		bouncer.AdminAccess(httperror.LoggerHandler(h.sgxKeyGen))).Methods(http.MethodPost)
+
+	h.Handle("/settings/keys",
+		bouncer.AdminAccess(httperror.LoggerHandler(h.getKeys))).Methods(http.MethodGet)
 
 	return h
 }

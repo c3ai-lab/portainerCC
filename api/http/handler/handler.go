@@ -211,7 +211,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.ResourceControlHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/roles"):
 		http.StripPrefix("/api", h.RoleHandler).ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/settings/sgx-keygen"):
+	case strings.HasPrefix(r.URL.Path, "/api/settings/keys"):
 		http.StripPrefix("/api", h.ConfComputeHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/settings"):
 		http.StripPrefix("/api", h.SettingsHandler).ServeHTTP(w, r)
