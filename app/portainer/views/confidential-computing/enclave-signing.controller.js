@@ -1,54 +1,60 @@
 import angular from 'angular';
+import _ from 'lodash-es';
 
 angular.module('portainer.app').controller('enclaveSigningController', enclaveSigningController);
 
 /* @ngInject */
-export default function enclaveSigningController(Notifications, $async, $http, $q, $scope) {
+export default function enclaveSigningController(Notifications, $async, $http, $q, $scope, KeymanagementService, TeamService) {
   var ctrl = this;
-
   var deferred = $q.defer();
+
   console.log(ctrl);
   console.log(deferred);
 
-  // TODO in service auslagern
-
-  this.generateKey = () => {
-    console.log('--------------------genKEy');
-    $async(async () => {
-      $http
-        .post('https://localhost:9443/api/settings/sgx-keygen', { name: 'superGeilerSigninKey' })
-        .then(function success(data) {
-          Notifications.success('Success', 'New SGX Signing Key created!');
-          console.log(data);
-        })
-        .catch(function error(err) {
-          console.log(err);
-        });
-      console.log('async');
-    });
-  };
-
-  this.importKey = () => {
-    Notifications.error('Failure', 'No import implemented yet!');
-    console.log('-------------------------importkey');
-    $async(async () => {
-      $http
-        .get('https://localhost:9443/api/users')
-        .then(function success(data) {
-          console.log('ja moin');
-          console.log(data);
-        })
-        .catch(function error(err) {
-          console.log(err);
-        });
-      console.log('async');
-    });
-  };
-
-  function initView(){
-    console.log("MOIN");
-    $scope.keys = [{name:"name1"}]
+  this.testFunc = function (key) {
+    console.log("test");
+    console.log(key);
   }
+
+  function initView() {
+    $q.all({
+      keys: KeymanagementService.getKeys("coolType"),
+      teams: TeamService.teams()
+    })
+      .then(function success(data) {
+        var keys = _.orderBy(data.keys, 'name', 'asc');
+
+        $scope.enclaveKeys = keys.map((key) => {
+          var savedTeams = [];
+          //temp
+          if (key.name == "super key") {
+            savedTeams.push(data.teams[0]);
+          }
+
+          key.teams = angular.copy(data.teams)
+
+          if (savedTeams.length > 0) {
+            key.teams = key.teams.map((team) => {
+              if (savedTeams.some((saved) => {
+                return saved.Id == team.Id;
+              })) {
+                team.ticked = true;
+              }
+              return team;
+            })
+          }
+          return key
+        })
+
+        $scope.teams = _.orderBy(data.teams, 'Name', 'asc');
+      }).catch(function error(err) {
+        $scope.enclaveKeys = [];
+        $scope.teams = [];
+        Notifications.error('Failure', err, 'Unable to retrieve keys');
+      })
+
+  }
+
 
   initView();
 }

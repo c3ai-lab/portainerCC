@@ -9,5 +9,7 @@ angular.module('portainer.app').component('keysDatatable', {
     orderBy: '@',
     reverseOrder: '<',
     removeAction: '<',
+    teams: '<',
+    updateAccess: '<'
   },
 });
