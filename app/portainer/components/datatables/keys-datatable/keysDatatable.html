@@ -6,7 +6,7 @@
             style="margin-right: 2px"></i> {{ $ctrl.titleText }} </div>
       </div>
       <div class="actionBar">
-        <button type="button" class="btn btn-sm btn-primary" ng-click="$ctrl.removeAction($ctrl.state.selectedItems)">
+        <button type="button" class="btn btn-sm btn-primary" ng-click="$ctrl.createAction()">
           <i class="fa fa-plus space-right" aria-hidden="true"></i>Generate Key
         </button>
         <button type="button" class="btn btn-sm btn-danger" ng-disabled="$ctrl.state.selectedItemCount === 0"
@@ -62,7 +62,8 @@
                     <!-- MULTI SELECT -->
                     <span isteven-multi-select ng-if="$ctrl.teams.length > 0" input-model="item.teams"
                       output-model="item.teamsSelection" button-label="Name" item-label="Name" tick-property="ticked"
-                      on-close="$ctrl.updateAccess(item)"
+                      on-close="$ctrl.multiClose(item)"
+                      on-open="$ctrl.multiOpen(item)"
                       helper-elements="filter" search-property="Name"
                       translation="{nothingSelected: 'Select one or more teams', search: 'Search...'}">
                     </span>

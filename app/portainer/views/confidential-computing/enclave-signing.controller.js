@@ -4,16 +4,40 @@ import _ from 'lodash-es';
 angular.module('portainer.app').controller('enclaveSigningController', enclaveSigningController);
 
 /* @ngInject */
-export default function enclaveSigningController(Notifications, $async, $http, $q, $scope, KeymanagementService, TeamService) {
+export default function enclaveSigningController(Notifications, $async, $http, $q, $scope, KeymanagementService, TeamService, $state) {
   var ctrl = this;
   var deferred = $q.defer();
+
+  var tempTeamIds = [];
 
   console.log(ctrl);
   console.log(deferred);
 
-  this.testFunc = function (key) {
+  this.testFunc = function () {
+    $state.reload();
     console.log("test");
-    console.log(key);
+  }
+
+  this.generateKey = function() {
+    KeymanagementService.generateKey("ENCLAVE_SIGNING_KEY", "descriptionxyz").then(function success() {
+      console.log("NEW KEY GENERATED");
+    }).catch(function error(err) {
+      console.log("ERROR");
+      console.log(err);
+    })
+  }
+
+  this.updateKeyAccess = function (key) {
+    var newTeamIds = key.teamsSelection.map((team) => { return team.Id })
+    if(!_.isEqual(tempTeamIds, newTeamIds)){
+      Notifications.success('Success', 'Access for Key ' + key.id + ' updated!');
+      console.log("UPDATE KEY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    }
+    tempTeamIds = [];
+  }
+
+  this.saveTempSelection = function (key) {
+    tempTeamIds = key.teamsSelection.map((team) => { return team.Id })
   }
 
   function initView() {

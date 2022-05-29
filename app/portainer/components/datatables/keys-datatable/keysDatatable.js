@@ -10,6 +10,8 @@ angular.module('portainer.app').component('keysDatatable', {
     reverseOrder: '<',
     removeAction: '<',
     teams: '<',
-    updateAccess: '<'
+    multiClose: '<',
+    multiOpen: '<',
+    createAction: '<'
   },
 });

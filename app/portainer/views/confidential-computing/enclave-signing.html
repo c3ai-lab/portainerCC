@@ -14,14 +14,15 @@
         You can manage their access by adding teams and allowing them to use the key in the image building process.
     </span>
 </information-panel>
-<span> 
+<span>
     <button ng-click="$ctrl.testFunc()">test</button>
-    <br/>
+    <br />
     <!-- {{teams}} -->
 </span>
 <div class="row">
     <div class="col-sm-12">
-        <keys-datatable title-text="Enclave Signing Keys" title-icon="fa-key" dataset="enclaveKeys" table-key="enclaveKeys" order-by="Name" teams="teams" update-access="$ctrl.testFunc"
-            remove-action="removeAction"></keys-datatable>
+        <keys-datatable title-text="Enclave Signing Keys" title-icon="fa-key" dataset="enclaveKeys"
+            table-key="enclaveKeys" order-by="Name" teams="teams" multi-close="$ctrl.updateKeyAccess" multi-open="$ctrl.saveTempSelection"
+            remove-action="removeAction" create-action="$ctrl.generateKey"></keys-datatable>
     </div>
 </div>

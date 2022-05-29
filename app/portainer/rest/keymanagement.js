@@ -9,8 +9,6 @@ angular.module('portainer.app').factory('Keymanagement', [
       {
         create: { method: 'POST', ignoreLoadingBar: true },
         query: { method: 'GET', isArray: true },
-        remove: { method: 'DELETE', params: { id: '@id' } },
-        queryMemberships: { method: 'GET', isArray: true, params: { id: '@id', entity: 'memberships' } },
       }
     );
   },

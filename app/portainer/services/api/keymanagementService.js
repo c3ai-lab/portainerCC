@@ -6,19 +6,20 @@ angular.module('portainer.app').factory('KeymanagementService', [
     'use strict';
     var service = {};
 
-    service.generateKey = function (type, description, teamId) {
+    service.generateKey = function (type, description) {
+      console.log("hallo")
       var deferred = $q.defer();
       var payload = {
-        Type: type,
-        Description: description,
-        TeamId: teamId,
+        type: type,
+        name: description,
       }
 
-      Keymanagement.create({}, payload).$promise.then(function success(data) {
-        deferred.resolve(data);
-      }).catch(function error(err) {
-        deferred.reject({ msg: 'Unable to generate key', err: err })
-      })
+      Keymanagement.create({}, payload)
+        .$promise.then(function success(data) {
+          deferred.resolve(data);
+        }).catch(function error(err) {
+          deferred.reject({ msg: 'Unable to generate key', err: err })
+        })
 
       return deferred.$promise;
     }
