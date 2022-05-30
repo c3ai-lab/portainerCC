@@ -35,8 +35,8 @@ func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httpe
 		return &httperror.HandlerError{http.StatusBadRequest, "request body maleformed", err}
 	}
 
-	// json return structure
-	keyObject := portainer.ConfCompute{
+	// creating
+	keyObject := &portainer.ConfCompute{
 		KeyType:     params.KeyType,
 		Description: params.Description,
 		TeamIDs:     params.TeamIds,

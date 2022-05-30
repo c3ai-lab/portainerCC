@@ -187,7 +187,7 @@ type (
 	// ConfComputeService for managing private keys
 	ConfComputeService interface {
 		Keys() ([]portainer.ConfCompute, error)
-		Create(keyObject portainer.ConfCompute) error
+		Create(keyObject *portainer.ConfCompute) error
 	}
 
 	// APIKeyRepositoryService

@@ -60,7 +60,7 @@ func (service *Service) Keys() ([]portainer.ConfCompute, error) {
 }
 
 // CreateKey creates a new private Key
-func (service *Service) Create(keyObject portainer.ConfCompute) error {
+func (service *Service) Create(keyObject *portainer.ConfCompute) error {
 
 	// generate new rsa key
 	privatekey, err := rsa.GenerateKey(rand.Reader, 3072)
