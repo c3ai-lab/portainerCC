@@ -19,7 +19,7 @@ export default function enclaveSigningController(Notifications, $async, $http, $
   }
 
   this.generateKey = function() {
-    KeymanagementService.generateKey("ENCLAVE_SIGNING_KEY", "descriptionxyz").then(function success() {
+    KeymanagementService.generateKey("ENCLAVE_SIGNING_KEY", "descriptionxyz", [1]).then(function success() {
       console.log("NEW KEY GENERATED");
     }).catch(function error(err) {
       console.log("ERROR");

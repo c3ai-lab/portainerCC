@@ -6,12 +6,13 @@ angular.module('portainer.app').factory('KeymanagementService', [
     'use strict';
     var service = {};
 
-    service.generateKey = function (type, description) {
+    service.generateKey = function (type, description, teamIds) {
       console.log("hallo")
       var deferred = $q.defer();
       var payload = {
         type: type,
-        name: description,
+        description: description,
+        teamIds: teamIds,
       }
 
       Keymanagement.create({}, payload)
