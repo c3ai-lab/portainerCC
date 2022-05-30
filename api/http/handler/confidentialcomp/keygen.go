@@ -5,17 +5,24 @@ import (
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
+	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
 	portainer "github.com/portainer/portainer/api"
 )
 
+// required parameters for key-creation
 type KeyGenParams struct {
 	KeyType     string
 	Description string
 	TeamIds     []int
 }
 
-// @id SgxKeyGen
+// required parameters for key-update
+type UpdateKeyParams struct {
+	TeamIds []int
+}
+
+// @id sgxKeyGen
 // @summary Generate SGX-Key
 // @description Generate a new private sgx-key
 // @description **Access policy**: administrator
@@ -23,7 +30,7 @@ type KeyGenParams struct {
 // @security ApiKeyAuth
 // @security jwt
 // @produce json
-// @success 200 {array} portainer.Role "Success"
+// @success 200 {array} portainer.ConfCompute "Success"
 // @failure 500 "Server error"
 func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
@@ -62,4 +69,34 @@ func (handler *Handler) getKeys(w http.ResponseWriter, r *http.Request) *httperr
 	}
 
 	return response.JSON(w, keys)
+}
+
+func (handler *Handler) updateKey(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+
+	// read query id
+	keyID, err := request.RetrieveNumericRouteVariableValue(r, "id")
+	if err != nil {
+		return &httperror.HandlerError{http.StatusBadRequest, "Invalid key identifier route variable", err}
+	}
+
+	// create JSON object
+	var params UpdateKeyParams
+	err = json.NewDecoder(r.Body).Decode(&params)
+
+	if err != nil {
+		return &httperror.HandlerError{http.StatusBadRequest, "request body maleformed", err}
+	}
+
+	// creating
+	keyObject := &portainer.ConfCompute{
+		TeamIDs: params.TeamIds,
+	}
+
+	// update the key
+	err = handler.DataStore.ConfCompute().Update(keyID, keyObject)
+	if err != nil {
+		return &httperror.HandlerError{http.StatusNotFound, "Unable to persist key changes inside the database", err}
+	}
+
+	return response.JSON(w, keyObject)
 }

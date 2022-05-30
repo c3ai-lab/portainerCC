@@ -79,3 +79,9 @@ func (service *Service) Create(keyObject *portainer.ConfCompute) error {
 		},
 	)
 }
+
+// Update an existing key
+func (service *Service) Update(id int, keyObject *portainer.ConfCompute) error {
+	identifier := service.connection.ConvertToKey(int(id))
+	return service.connection.UpdateObject(BucketName, identifier, keyObject)
+}

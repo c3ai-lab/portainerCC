@@ -188,6 +188,7 @@ type (
 	ConfComputeService interface {
 		Keys() ([]portainer.ConfCompute, error)
 		Create(keyObject *portainer.ConfCompute) error
+		Update(id int, keyObject *portainer.ConfCompute) error
 	}
 
 	// APIKeyRepositoryService
