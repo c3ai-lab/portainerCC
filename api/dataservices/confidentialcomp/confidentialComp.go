@@ -60,7 +60,7 @@ func (service *Service) Keys() ([]portainer.ConfCompute, error) {
 }
 
 // CreateKey creates a new private Key
-func (service *Service) Create(name string) error {
+func (service *Service) Create(keyObject portainer.ConfCompute) error {
 
 	// generate new rsa key
 	privatekey, err := rsa.GenerateKey(rand.Reader, 3072)
@@ -69,11 +69,7 @@ func (service *Service) Create(name string) error {
 		return errors.New("Could not generate Key")
 	}
 
-	keyObject := portainer.ConfCompute{
-		0,
-		name,
-		privatekey,
-	}
+	keyObject.Key = privatekey
 
 	return service.connection.CreateObject(
 		BucketName,

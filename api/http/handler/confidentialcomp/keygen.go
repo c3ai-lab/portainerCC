@@ -6,11 +6,13 @@ import (
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/response"
+	portainer "github.com/portainer/portainer/api"
 )
 
 type KeyGenParams struct {
-	Type        string
+	KeyType     string
 	Description string
+	TeamIds     []int
 }
 
 // @id SgxKeyGen
@@ -33,14 +35,21 @@ func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httpe
 		return &httperror.HandlerError{http.StatusBadRequest, "request body maleformed", err}
 	}
 
+	// json return structure
+	keyObject := portainer.ConfCompute{
+		KeyType:     params.KeyType,
+		Description: params.Description,
+		TeamIDs:     params.TeamIds,
+	}
+
 	// initialize Keygen
-	err = handler.DataStore.ConfCompute().Create(params.Description)
+	err = handler.DataStore.ConfCompute().Create(keyObject)
 
 	if err != nil {
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to generate new key", err}
 	}
 
-	return response.JSON(w, "New key added: "+params.Description)
+	return response.JSON(w, keyObject)
 }
 
 func (handler *Handler) getKeys(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {

@@ -93,9 +93,11 @@ type (
 	}
 
 	ConfCompute struct {
-		ID   ConfComputeID   `json:"id"`
-		Name string          `json:"name"`
-		Key  *rsa.PrivateKey `json:"key"`
+		ID          ConfComputeID   `json:"id"`
+		KeyType     string          `json:"keyType"`
+		Description string          `json:"description"`
+		TeamIDs     []int           `json:"teamIds"`
+		Key         *rsa.PrivateKey `json:"key"`
 	}
 
 	ConfComputeID int
