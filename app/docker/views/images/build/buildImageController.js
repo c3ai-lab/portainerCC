@@ -1,6 +1,8 @@
+import _ from 'lodash-es';
+
 angular.module('portainer.docker').controller('BuildImageController', BuildImageController);
 
-function BuildImageController($scope, $async, $window, ModalService, BuildService, Notifications, HttpRequestHelper) {
+function BuildImageController($scope, $async, $window, ModalService, BuildService, Notifications, HttpRequestHelper, $q, KeymanagementService) {
   $scope.state = {
     BuildType: 'editor',
     actionInProgress: false,
@@ -15,7 +17,23 @@ function BuildImageController($scope, $async, $window, ModalService, BuildServic
     URL: '',
     Path: 'Dockerfile',
     NodeName: null,
+    enclaveSigningKey: null
   };
+
+  //get all available enclave signing keys
+  $scope.enclaveKeys = [];
+
+  $q.all({
+    keys: KeymanagementService.getKeys("coolType")
+  })
+    .then(function success(data) {
+      $scope.enclaveKeys = _.orderBy(data.keys, 'name', 'asc');
+      console.log($scope.enclaveKeys);
+    }).catch(function error(err) {
+      $scope.enclaveKeys = [];
+      Notifications.error('Failure', err, 'Unable to retrieve keys');
+    })
+
 
   $window.onbeforeunload = () => {
     if ($scope.state.BuildType === 'editor' && $scope.formValues.DockerFileContent && $scope.state.isEditorDirty) {
