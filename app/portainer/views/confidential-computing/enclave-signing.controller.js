@@ -14,22 +14,31 @@ export default function enclaveSigningController(Notifications, $async, $http, $
   console.log(deferred);
 
   this.testFunc = function () {
-    $state.reload();
-    console.log("test");
+    console.log($scope.formData);
+    var teamIds = $scope.formData.teamIds.map((team) => { return team.Id });
+    console.log(teamIds);
   }
 
-  this.generateKey = function() {
-    KeymanagementService.generateKey("ENCLAVE_SIGNING_KEY", "descriptionxyz", [1]).then(function success() {
-      console.log("NEW KEY GENERATED");
-    }).catch(function error(err) {
-      console.log("ERROR");
-      console.log(err);
-    })
+  $scope.formData = {
+    description: "",
+    teamIds: []
+  }
+
+  this.generateKey = function () {
+    var teamIds = $scope.formData.teamIds.map((team) => { return team.Id });
+    $q.all(
+      KeymanagementService.generateKey("ENCLAVE_SIGNING_KEY", $scope.formData.description, teamIds)
+    )
+      .then(function success() {
+        Notifications.success('Success', 'New Key added!')
+      }).catch(function error(err) {
+        Notifications.error('Failure', err, 'Unable to generate key');
+      })
   }
 
   this.updateKeyAccess = function (key) {
     var newTeamIds = key.teamsSelection.map((team) => { return team.Id })
-    if(!_.isEqual(tempTeamIds, newTeamIds)){
+    if (!_.isEqual(tempTeamIds, newTeamIds)) {
       Notifications.success('Success', 'Access for Key ' + key.id + ' updated!');
       console.log("UPDATE KEY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     }
@@ -46,22 +55,19 @@ export default function enclaveSigningController(Notifications, $async, $http, $
       teams: TeamService.teams()
     })
       .then(function success(data) {
-        var keys = _.orderBy(data.keys, 'name', 'asc');
+        var keys = _.orderBy(data.keys, 'description', 'asc');
 
         $scope.enclaveKeys = keys.map((key) => {
-          var savedTeams = [];
-          //temp
-          if (key.name == "super key") {
-            savedTeams.push(data.teams[0]);
-          }
+          // //temp
+          // if (key.name == "super key") {
+          //   savedTeams.push(data.teams[0]);
+          // }
 
           key.teams = angular.copy(data.teams)
 
-          if (savedTeams.length > 0) {
+          if (key.teamIds?.length > 0) {
             key.teams = key.teams.map((team) => {
-              if (savedTeams.some((saved) => {
-                return saved.Id == team.Id;
-              })) {
+              if (key.teamIds.includes(team.Id)) {
                 team.ticked = true;
               }
               return team;

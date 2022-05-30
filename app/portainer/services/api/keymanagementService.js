@@ -12,7 +12,7 @@ angular.module('portainer.app').factory('KeymanagementService', [
       var payload = {
         type: type,
         description: description,
-        teamIds: teamIds,
+        teamIds: teamIds
       }
 
       Keymanagement.create({}, payload)
