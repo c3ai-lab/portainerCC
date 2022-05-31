@@ -27,8 +27,7 @@ function BuildImageController($scope, $async, $window, ModalService, BuildServic
     keys: KeymanagementService.getKeys("coolType")
   })
     .then(function success(data) {
-      $scope.enclaveKeys = _.orderBy(data.keys, 'name', 'asc');
-      console.log($scope.enclaveKeys);
+      $scope.enclaveKeys = _.orderBy(data.keys, 'description', 'asc');
     }).catch(function error(err) {
       $scope.enclaveKeys = [];
       Notifications.error('Failure', err, 'Unable to retrieve keys');
@@ -57,15 +56,17 @@ function BuildImageController($scope, $async, $window, ModalService, BuildServic
     var buildType = $scope.state.BuildType;
     var dockerfilePath = $scope.formValues.Path;
 
+    var signingKeyId = ($scope.formValues.enclaveSigningKey.length > 0) ? $scope.formValues.enclaveSigningKey[0].id : null;
+
     if (buildType === 'upload') {
       var file = $scope.formValues.UploadFile;
-      return BuildService.buildImageFromUpload(names, file, dockerfilePath);
+      return BuildService.buildImageFromUpload(names, file, dockerfilePath, signingKeyId);
     } else if (buildType === 'url') {
       var URL = $scope.formValues.URL;
-      return BuildService.buildImageFromURL(names, URL, dockerfilePath);
+      return BuildService.buildImageFromURL(names, URL, dockerfilePath, signingKeyId);
     } else {
       var dockerfileContent = $scope.formValues.DockerFileContent;
-      return BuildService.buildImageFromDockerfileContent(names, dockerfileContent);
+      return BuildService.buildImageFromDockerfileContent(names, dockerfileContent, signingKeyId);
     }
   }
 
@@ -74,7 +75,7 @@ function BuildImageController($scope, $async, $window, ModalService, BuildServic
   async function buildImage() {
     return $async(async () => {
       var buildType = $scope.state.BuildType;
-
+      
       if (buildType === 'editor' && $scope.formValues.DockerFileContent === '') {
         $scope.state.formValidationError = 'Dockerfile content must not be empty';
         return;

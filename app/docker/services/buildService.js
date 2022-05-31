@@ -8,10 +8,10 @@ angular.module('portainer.docker').factory('BuildService', [
     'use strict';
     var service = {};
 
-    service.buildImageFromUpload = function (names, file, path) {
+    service.buildImageFromUpload = function (names, file, path, signingKey) {
       var deferred = $q.defer();
 
-      FileUploadService.buildImage(names, file, path)
+      FileUploadService.buildImage(names, file, path, signingKey)
         .then(function success(response) {
           var model = new ImageBuildModel(response.data);
           deferred.resolve(model);
@@ -23,11 +23,12 @@ angular.module('portainer.docker').factory('BuildService', [
       return deferred.promise;
     };
 
-    service.buildImageFromURL = function (names, url, path) {
+    service.buildImageFromURL = function (names, url, path, signingKey) {
       var params = {
         t: names,
         remote: url,
         dockerfile: path,
+        signingKeyId: signingKey
       };
 
       var deferred = $q.defer();
@@ -44,12 +45,13 @@ angular.module('portainer.docker').factory('BuildService', [
       return deferred.promise;
     };
 
-    service.buildImageFromDockerfileContent = function (names, content) {
+    service.buildImageFromDockerfileContent = function (names, content, signingKey) {
       var params = {
         t: names,
       };
       var payload = {
         content: content,
+        signingKeyId: signingKey
       };
 
       var deferred = $q.defer();

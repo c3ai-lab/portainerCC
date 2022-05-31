@@ -14,7 +14,7 @@ angular.module('portainer.app').factory('FileUploadService', [
       return Upload.upload({ url: url, data: { file: file } });
     }
 
-    service.buildImage = function (names, file, path) {
+    service.buildImage = function (names, file, path, signingKey) {
       var endpointID = EndpointProvider.endpointID();
       return Upload.http({
         url: 'api/endpoints/' + endpointID + '/docker/build',
@@ -25,6 +25,7 @@ angular.module('portainer.app').factory('FileUploadService', [
         params: {
           t: names,
           dockerfile: path,
+          signingKeyId: signingKey
         },
         ignoreLoadingBar: true,
         transformResponse: function (data) {
