@@ -87,16 +87,22 @@ func (handler *Handler) updateKey(w http.ResponseWriter, r *http.Request) *httpe
 		return &httperror.HandlerError{http.StatusBadRequest, "request body maleformed", err}
 	}
 
-	// creating
-	keyObject := &portainer.ConfCompute{
-		TeamIDs: params.TeamIds,
+	// get key object from database
+	key, err := handler.DataStore.ConfCompute().Key(portainer.ConfComputeID(keyID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
+		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a key with the specified identifier inside the database", err}
+	} else if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a key with the specified identifier inside the database", err}
 	}
 
+	// update the key teams
+	key.TeamIDs = params.TeamIds
+
 	// update the key
-	err = handler.DataStore.ConfCompute().Update(keyID, keyObject)
+	err = handler.DataStore.ConfCompute().Update(key.ID, key)
 	if err != nil {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to persist key changes inside the database", err}
 	}
 
-	return response.JSON(w, keyObject)
+	return response.JSON(w, key)
 }

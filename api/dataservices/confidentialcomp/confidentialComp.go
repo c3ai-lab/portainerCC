@@ -59,6 +59,20 @@ func (service *Service) Keys() ([]portainer.ConfCompute, error) {
 	return keys, err
 }
 
+// Key returns the database key with the specified id
+func (service *Service) Key(ID portainer.ConfComputeID) (*portainer.ConfCompute, error) {
+
+	var key portainer.ConfCompute
+	identifier := service.connection.ConvertToKey(int(ID))
+
+	err := service.connection.GetObject(BucketName, identifier, &key)
+	if err != nil {
+		return nil, err
+	}
+
+	return &key, nil
+}
+
 // CreateKey creates a new private Key
 func (service *Service) Create(keyObject *portainer.ConfCompute) error {
 
@@ -81,7 +95,7 @@ func (service *Service) Create(keyObject *portainer.ConfCompute) error {
 }
 
 // Update an existing key
-func (service *Service) Update(id int, keyObject *portainer.ConfCompute) error {
-	identifier := service.connection.ConvertToKey(int(id))
+func (service *Service) Update(ID portainer.ConfComputeID, keyObject *portainer.ConfCompute) error {
+	identifier := service.connection.ConvertToKey(int(ID))
 	return service.connection.UpdateObject(BucketName, identifier, keyObject)
 }
