@@ -4,14 +4,13 @@ import _ from 'lodash-es';
 angular.module('portainer.app').controller('enclaveSigningController', enclaveSigningController);
 
 /* @ngInject */
-export default function enclaveSigningController(Notifications, $async, $http, $q, $scope, KeymanagementService, TeamService, $state) {
-  var ctrl = this;
-  var deferred = $q.defer();
+export default function enclaveSigningController(Notifications, $q, $scope, KeymanagementService, TeamService, $state) {
+
+  $scope.state = {
+    actionInProgress: false,
+  };
 
   var tempTeamIds = [];
-
-  console.log(ctrl);
-  console.log(deferred);
 
   this.testFunc = function () {
     console.log($scope.formData);
@@ -25,22 +24,34 @@ export default function enclaveSigningController(Notifications, $async, $http, $
   }
 
   this.generateKey = function () {
+    $scope.state.actionInProgress = true;
     var teamIds = $scope.formData.teamIds.map((team) => { return team.Id });
-    $q.all(
-      KeymanagementService.generateKey("ENCLAVE_SIGNING_KEY", $scope.formData.description, teamIds)
-    )
-      .then(function success() {
-        Notifications.success('Success', 'New Key added!')
+    KeymanagementService.generateKey("ENCLAVE_SIGNING_KEY", $scope.formData.description, teamIds)
+      .then(function success(data) {
+        Notifications.success('Success', 'New Key added!');
+        $state.reload();
       }).catch(function error(err) {
         Notifications.error('Failure', err, 'Unable to generate key');
       })
+      .finally(function final() {
+        $scope.state.actionInProgress = false;
+      });
   }
 
   this.updateKeyAccess = function (key) {
     var newTeamIds = key.teamsSelection.map((team) => { return team.Id })
     if (!_.isEqual(tempTeamIds, newTeamIds)) {
-      Notifications.success('Success', 'Access for Key ' + key.id + ' updated!');
-      console.log("UPDATE KEY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+      $scope.state.actionInProgress = true;
+      KeymanagementService.updateTeams(key.id, newTeamIds)
+        .then(function success() {
+          Notifications.success('Success', 'Access updated!');
+        })
+        .catch(function error(err) {
+          Notifications.error('Failure', err, 'Unable to update access!');
+        })
+        .finally(function final() {
+          $scope.state.actionInProgress = false;
+        });
     }
     tempTeamIds = [];
   }
@@ -65,7 +76,7 @@ export default function enclaveSigningController(Notifications, $async, $http, $
 
           key.teams = angular.copy(data.teams)
 
-          if (key.teamIds?.length > 0) {
+          if (key.teamIds && key.teamIds.length > 0) {
             key.teams = key.teams.map((team) => {
               if (key.teamIds.includes(team.Id)) {
                 team.ticked = true;

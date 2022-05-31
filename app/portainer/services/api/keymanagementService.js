@@ -7,7 +7,6 @@ angular.module('portainer.app').factory('KeymanagementService', [
     var service = {};
 
     service.generateKey = function (type, description, teamIds) {
-      console.log("hallo")
       var deferred = $q.defer();
       var payload = {
         type: type,
@@ -22,13 +21,29 @@ angular.module('portainer.app').factory('KeymanagementService', [
           deferred.reject({ msg: 'Unable to generate key', err: err })
         })
 
-      return deferred.$promise;
+      return deferred.promise;
     }
+
+    service.updateTeams = function (id, teamIds) {
+      var deferred = $q.defer();
+      var payload = {
+        teamIds: teamIds,
+      };
+
+      Keymanagement.update({ id: id }, payload)
+        .$promise.then(function success(data) {
+          deferred.resolve(data);
+        }).catch(function error(err) {
+          deferred.reject({ msg: 'Unable to update key', err: err })
+        })
+
+      return deferred.promise;
+    };
 
     service.getKeys = function (type) {
       console.log("TODO: SET TYPE ----" + type)
       var deferred = $q.defer();
-      Keymanagement.query()
+      Keymanagement.query({})
         .$promise.then(function success(data) {
           deferred.resolve(data);
         }).catch(function error(err) {
