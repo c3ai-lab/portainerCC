@@ -12,6 +12,7 @@ angular.module('portainer.app').component('keysDatatable', {
     teams: '<',
     multiClose: '<',
     multiOpen: '<',
-    createAction: '<'
+    createAction: '<',
+    newKey: '<',
   },
 });
