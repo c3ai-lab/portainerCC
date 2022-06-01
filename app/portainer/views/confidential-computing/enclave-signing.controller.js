@@ -25,7 +25,9 @@ export default function enclaveSigningController(Notifications, $q, $scope, Keym
 
   this.generateKey = function () {
     $scope.state.actionInProgress = true;
+
     var teamIds = $scope.formData.teamIds.map((team) => { return team.Id });
+
     KeymanagementService.generateKey("ENCLAVE_SIGNING_KEY", $scope.formData.description, teamIds)
       .then(function success() {
         Notifications.success('Success', 'New Key added!');

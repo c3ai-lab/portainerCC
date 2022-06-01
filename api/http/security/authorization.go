@@ -134,6 +134,13 @@ func AuthorizedRegistryAccess(registry *portainer.Registry, user *portainer.User
 	return AuthorizedAccess(user.ID, teamMemberships, registryEndpointAccesses.UserAccessPolicies, registryEndpointAccesses.TeamAccessPolicies)
 }
 
+// ConfCompute
+// It will check if the user is part of the authorized team that is
+// listed in the authorized teams of the key
+func authorizedKeyAccess(key *portainer.ConfCompute, userID portainer.UserID, memberships []portainer.TeamMembership) bool {
+	return AuthorizedAccess(userID, memberships, nil, key.TeamAccessPolicies)
+}
+
 // AuthorizedAccess verifies the userID or memberships are authorized to use an object per the supplied access policies
 func AuthorizedAccess(userID portainer.UserID, memberships []portainer.TeamMembership, userAccessPolicies portainer.UserAccessPolicies, teamAccessPolicies portainer.TeamAccessPolicies) bool {
 	_, userAccess := userAccessPolicies[userID]

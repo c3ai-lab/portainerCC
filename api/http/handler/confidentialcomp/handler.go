@@ -24,7 +24,7 @@ func NewHandler(bouncer *security.RequestBouncer) *Handler {
 		bouncer.AdminAccess(httperror.LoggerHandler(h.sgxKeyGen))).Methods(http.MethodPost)
 
 	h.Handle("/settings/keys",
-		bouncer.AdminAccess(httperror.LoggerHandler(h.getKeys))).Methods(http.MethodGet)
+		bouncer.RestrictedAccess(httperror.LoggerHandler(h.getKeys))).Methods(http.MethodGet)
 
 	h.Handle("/settings/keys/{id}",
 		bouncer.AdminAccess(httperror.LoggerHandler(h.updateKey))).Methods(http.MethodPut)

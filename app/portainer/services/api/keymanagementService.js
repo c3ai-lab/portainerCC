@@ -7,11 +7,15 @@ angular.module('portainer.app').factory('KeymanagementService', [
     var service = {};
 
     service.generateKey = function (type, description, teamIds) {
+      
       var deferred = $q.defer();
+
+      var teamAccessPolicies = teamIds.reduce((acc, id) => ({ ...acc, [id]: { RoleId: 0 } }), {})
+
       var payload = {
-        type: type,
-        description: description,
-        teamIds: teamIds
+        KeyType: type,
+        Description: description,
+        TeamAccessPolicies: teamAccessPolicies
       }
 
       Keymanagement.create({}, payload)
@@ -26,8 +30,11 @@ angular.module('portainer.app').factory('KeymanagementService', [
 
     service.updateTeams = function (id, teamIds) {
       var deferred = $q.defer();
+
+      var teamAccessPolicies = teamIds.reduce((acc, id) => ({ ...acc, [id]: { RoleId: 0 } }), {})
+      
       var payload = {
-        teamIds: teamIds,
+        TeamAccessPolicies: teamAccessPolicies,
       };
 
       Keymanagement.update({ id: id }, payload)

@@ -126,3 +126,22 @@ func getAssociatedGroup(endpoint *portainer.Endpoint, groups []portainer.Endpoin
 	}
 	return nil
 }
+
+
+// ConfComputing
+// Non administrator users only have access to authorized keys by teammembership
+func FilterKeys(keys []portainer.ConfCompute, context *RestrictedRequestContext) []portainer.ConfCompute {
+	filteredKeys := keys
+
+	if !context.IsAdmin {
+		filteredKeys = make([]portainer.ConfCompute, 0)
+
+		for _, key := range keys {
+			if authorizedKeyAccess(&key, context.UserID, context.UserMemberships) {
+				filteredKeys = append(filteredKeys, key)
+			}
+		}
+	}
+
+	return filteredKeys
+}

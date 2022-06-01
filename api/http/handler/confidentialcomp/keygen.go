@@ -2,11 +2,13 @@ package confidentialcomp
 
 import (
 	"encoding/json"
+	"reflect"
 	"net/http"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
+	"github.com/portainer/portainer/api/http/security"
 	portainer "github.com/portainer/portainer/api"
 )
 
@@ -14,12 +16,12 @@ import (
 type KeyGenParams struct {
 	KeyType     string
 	Description string
-	TeamIds     []int
+	TeamAccessPolicies portainer.TeamAccessPolicies
 }
 
 // required parameters for key-update
 type UpdateKeyParams struct {
-	TeamIds []int
+	TeamAccessPolicies portainer.TeamAccessPolicies
 }
 
 // @id sgxKeyGen
@@ -46,7 +48,7 @@ func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httpe
 	keyObject := &portainer.ConfCompute{
 		KeyType:     params.KeyType,
 		Description: params.Description,
-		TeamIDs:     params.TeamIds,
+		TeamAccessPolicies:     params.TeamAccessPolicies,
 	}
 
 	// initialize Keygen
@@ -68,7 +70,12 @@ func (handler *Handler) getKeys(w http.ResponseWriter, r *http.Request) *httperr
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve key sets from the database", err}
 	}
 
-	return response.JSON(w, keys)
+	//filter for admin or team access
+	securityContext, err := security.RetrieveRestrictedRequestContext(r)
+	filteredKeys := security.FilterKeys(keys, securityContext)
+
+	
+	return response.JSON(w, filteredKeys)
 }
 
 func (handler *Handler) updateKey(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
@@ -96,7 +103,9 @@ func (handler *Handler) updateKey(w http.ResponseWriter, r *http.Request) *httpe
 	}
 
 	// update the key teams
-	key.TeamIDs = params.TeamIds
+	if params.TeamAccessPolicies != nil && !reflect.DeepEqual(params.TeamAccessPolicies, key.TeamAccessPolicies) {
+		key.TeamAccessPolicies = params.TeamAccessPolicies
+	}
 
 	// update the key
 	err = handler.DataStore.ConfCompute().Update(key.ID, key)
