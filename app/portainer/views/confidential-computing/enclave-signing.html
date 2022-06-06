@@ -22,6 +22,6 @@
     <div class="col-sm-12">
         <keys-datatable title-text="Enclave Signing Keys" title-icon="fa-key" dataset="enclaveKeys"
             table-key="enclaveKeys" order-by="description" teams="teams" multi-close="$ctrl.updateKeyAccess" multi-open="$ctrl.saveTempSelection"
-            remove-action="removeAction" create-action="$ctrl.generateKey" new-key="formData"></keys-datatable>
+            remove-action="$ctrl.removeKey" export-action="$ctrl.exportKey" import-action="$ctrl.importKey" create-action="$ctrl.generateKey" new-key="formData"></keys-datatable>
     </div>
 </div>

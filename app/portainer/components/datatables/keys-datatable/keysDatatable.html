@@ -11,7 +11,8 @@
           <div class="row">
 
             <div class="col-sm-3">Description:</div>
-            <div class="col-sm-9"><input type="text" class="form-control" ng-model="$ctrl.newKey.description" id="newDescription" /></div>
+            <div class="col-sm-9"><input type="text" class="form-control" ng-model="$ctrl.newKey.description"
+                id="newDescription" /></div>
           </div>
           <div class="row">
 
@@ -23,8 +24,8 @@
               </span>
               <span isteven-multi-select ng-if="$ctrl.teams.length > 0" input-model="$ctrl.teams"
                 output-model="$ctrl.newKey.teamIds" button-label="Name" item-label="Name" tick-property="ticked"
-                helper-elements="filter"
-                search-property="Name" translation="{nothingSelected: 'Select one or more teams', search: 'Search...'}">
+                helper-elements="filter" search-property="Name"
+                translation="{nothingSelected: 'Select one or more teams', search: 'Search...'}">
               </span>
             </div>
           </div>
@@ -33,6 +34,16 @@
         <button type="button" class="btn btn-sm btn-primary" ng-click="$ctrl.createAction()">
           <i class="fa fa-plus space-right" aria-hidden="true"></i>Generate Key
         </button>
+
+        <button type="button" class="btn btn-sm btn-primary" ng-click="$ctrl.importAction()">
+          <i class="fa fa-upload space-right" aria-hidden="true"></i>Import Key
+        </button>
+
+        <button type="button" class="btn btn-sm btn-info" ng-disabled="$ctrl.state.selectedItemCount === 0"
+          ng-click="$ctrl.exportAction($ctrl.state.selectedItems)">
+          <i class="fa fa-download space-right" aria-hidden="true"></i>Export Keys
+        </button>
+
         <button type="button" class="btn btn-sm btn-danger" ng-disabled="$ctrl.state.selectedItemCount === 0"
           ng-click="$ctrl.removeAction($ctrl.state.selectedItems)">
           <i class="fa fa-trash-alt space-right" aria-hidden="true"></i>Remove

@@ -190,6 +190,7 @@ type (
 		Key(ID portainer.ConfComputeID) (*portainer.ConfCompute, error)
 		Create(keyObject *portainer.ConfCompute) error
 		Update(ID portainer.ConfComputeID, keyObject *portainer.ConfCompute) error
+		Delete(ID portainer.ConfComputeID) error
 	}
 
 	// APIKeyRepositoryService

@@ -7,7 +7,7 @@ angular.module('portainer.app').factory('KeymanagementService', [
     var service = {};
 
     service.generateKey = function (type, description, teamIds) {
-      
+
       var deferred = $q.defer();
 
       var teamAccessPolicies = teamIds.reduce((acc, id) => ({ ...acc, [id]: { RoleId: 0 } }), {})
@@ -32,7 +32,7 @@ angular.module('portainer.app').factory('KeymanagementService', [
       var deferred = $q.defer();
 
       var teamAccessPolicies = teamIds.reduce((acc, id) => ({ ...acc, [id]: { RoleId: 0 } }), {})
-      
+
       var payload = {
         TeamAccessPolicies: teamAccessPolicies,
       };
@@ -46,6 +46,30 @@ angular.module('portainer.app').factory('KeymanagementService', [
 
       return deferred.promise;
     };
+
+    service.deleteKey = function (keyId) {
+      var deferred = $q.defer();
+
+      Keymanagement.delete({ id: keyId })
+        .$promise.then(function success(data) {
+          deferred.resolve(data);
+        }).catch(function error(err) {
+          deferred.reject({ msg: 'Unable to delete key', err: err })
+        })
+
+      return deferred.promise;
+    }
+
+    service.getKeyAsPEM = function (keyId) {
+      var deferred = $q.defer();
+      Keymanagement.getPEM({ id: keyId })
+        .$promise.then(function success(data) {
+          deferred.resolve(data);
+        }).catch(function error(err) {
+          deferred.reject({ msg: 'Unable to retrieve key', err: err })
+        });
+      return deferred.promise;
+    }
 
     service.getKeys = function (type) {
       console.log("TODO: SET TYPE ----" + type)

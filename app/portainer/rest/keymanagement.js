@@ -9,7 +9,9 @@ angular.module('portainer.app').factory('Keymanagement', [
       {
         create: { method: 'POST', ignoreLoadingBar: true },
         query: { method: 'GET', isArray: true },
+        getPEM: { method: 'GET', params: { id: '@id' } },
         update: { method: 'PUT', params: { id: '@id' } },
+        delete: { method: 'DELETE', params: { id: '@id' } },
       }
     );
   },

@@ -13,6 +13,8 @@ angular.module('portainer.app').component('keysDatatable', {
     multiClose: '<',
     multiOpen: '<',
     createAction: '<',
+    exportAction: '<',
+    importAction: '<',
     newKey: '<',
   },
 });

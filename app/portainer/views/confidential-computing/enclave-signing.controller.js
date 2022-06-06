@@ -4,11 +4,13 @@ import _ from 'lodash-es';
 angular.module('portainer.app').controller('enclaveSigningController', enclaveSigningController);
 
 /* @ngInject */
-export default function enclaveSigningController(Notifications, $q, $scope, KeymanagementService, TeamService, $state) {
+export default function enclaveSigningController(Notifications, $q, $scope, KeymanagementService, TeamService, $state, FileSaver) {
 
   $scope.state = {
     actionInProgress: false,
   };
+
+  const KEY_TYPE = "ENCLAVE_SIGNING_KEY";
 
   var tempTeamIds = [];
 
@@ -28,7 +30,7 @@ export default function enclaveSigningController(Notifications, $q, $scope, Keym
 
     var teamIds = $scope.formData.teamIds.map((team) => { return team.Id });
 
-    KeymanagementService.generateKey("ENCLAVE_SIGNING_KEY", $scope.formData.description, teamIds)
+    KeymanagementService.generateKey(KEY_TYPE, $scope.formData.description, teamIds)
       .then(function success() {
         Notifications.success('Success', 'New Key added!');
         $state.reload();
@@ -38,6 +40,48 @@ export default function enclaveSigningController(Notifications, $q, $scope, Keym
       .finally(function final() {
         $scope.state.actionInProgress = false;
       });
+  }
+
+  this.removeKey = function (selectedKeys) {
+    $scope.state.actionInProgress = true;
+
+    $q.all(
+      selectedKeys.map(async key => {
+        await KeymanagementService.deleteKey(key.id)
+          .then(function success() {
+            Notifications.success('Success', 'Key deleted!');
+          })
+          .catch(function error(err) {
+            Notifications.error('Failure', err, 'Unable to delete key!');
+          })
+      })
+    )
+      .then(function success(data) {
+        $scope.state.actionInProgress = false;
+        $state.reload();
+      })
+  }
+
+  this.exportKey = function (selectedKeys) {
+    console.log("export keys")
+    console.log(selectedKeys);
+
+    KeymanagementService.getKeyAsPEM(selectedKeys[0].id)
+      .then(function success(data) {
+        console.log(data);
+        var downloadData = new Blob([data], { type: 'application/x-pem-file' });
+        FileSaver.saveAs(downloadData, 'enclave_signing_key.pem');
+        Notifications.success('Key successfully exported');
+      })
+      .catch(function error(err) {
+        Notifications.error('Failure', err, 'Unable to export key');
+      })
+
+  }
+
+
+  this.importKey = function () {
+    console.log("import key")
   }
 
   this.updateKeyAccess = function (key) {
@@ -64,23 +108,18 @@ export default function enclaveSigningController(Notifications, $q, $scope, Keym
 
   function initView() {
     $q.all({
-      keys: KeymanagementService.getKeys("coolType"),
+      keys: KeymanagementService.getKeys(KEY_TYPE),
       teams: TeamService.teams()
     })
       .then(function success(data) {
         var keys = _.orderBy(data.keys, 'description', 'asc');
 
         $scope.enclaveKeys = keys.map((key) => {
-          // //temp
-          // if (key.name == "super key") {
-          //   savedTeams.push(data.teams[0]);
-          // }
-
           key.teams = angular.copy(data.teams)
 
-          if (key.teamIds && key.teamIds.length > 0) {
+          if (!_.isEmpty(key.TeamAccessPolicies)) {
             key.teams = key.teams.map((team) => {
-              if (key.teamIds.includes(team.Id)) {
+              if (Object.keys(key.TeamAccessPolicies).includes(team.Id.toString())) {
                 team.ticked = true;
               }
               return team;

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"reflect"
 	"net/http"
+	"crypto/x509"
+	"encoding/pem"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -23,6 +25,12 @@ type KeyGenParams struct {
 type UpdateKeyParams struct {
 	TeamAccessPolicies portainer.TeamAccessPolicies
 }
+
+// //key export strcut
+// type ExportKey struct {
+// 	Id	portainer.ConfComputeID
+// 	PEM	string
+// }
 
 // @id sgxKeyGen
 // @summary Generate SGX-Key
@@ -73,9 +81,16 @@ func (handler *Handler) getKeys(w http.ResponseWriter, r *http.Request) *httperr
 	//filter for admin or team access
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	filteredKeys := security.FilterKeys(keys, securityContext)
-
 	
-	return response.JSON(w, filteredKeys)
+	//filter key out of objects
+	result := make([]portainer.ConfCompute, 0)
+
+	for _, key := range filteredKeys {
+		key.Key = nil;
+		result = append(result, key)
+	}
+	
+	return response.JSON(w, result)
 }
 
 func (handler *Handler) updateKey(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
@@ -114,4 +129,59 @@ func (handler *Handler) updateKey(w http.ResponseWriter, r *http.Request) *httpe
 	}
 
 	return response.JSON(w, key)
+}
+
+func (handler *Handler) exportKey(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+
+	// read query id
+	keyID, err := request.RetrieveNumericRouteVariableValue(r, "id")
+	if err != nil {
+		return &httperror.HandlerError{http.StatusBadRequest, "Invalid key identifier route variable", err}
+	}
+
+	// get key object from database
+	key, err := handler.DataStore.ConfCompute().Key(portainer.ConfComputeID(keyID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
+		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a key with the specified identifier inside the database", err}
+	} else if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a key with the specified identifier inside the database", err}
+	}
+
+	//generate pem
+	privKeyBytes := x509.MarshalPKCS1PrivateKey(key.Key);
+	pem := pem.EncodeToMemory(
+		&pem.Block{
+			Type: "RSA PRIVATE KEY",
+			Bytes: privKeyBytes,
+		},
+	)
+
+	w.Header().Set("Content-Type","application/x-pem-file")
+	w.Write(pem);
+	return nil;
+}
+
+
+func (handler *Handler) deleteKey(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	keyID, err := request.RetrieveNumericRouteVariableValue(r, "id")
+	if err != nil {
+		return &httperror.HandlerError{http.StatusBadRequest, "Invalid key identifier route variable", err}
+	}
+	
+	_, err = handler.DataStore.ConfCompute().Key(portainer.ConfComputeID(keyID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
+		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a team with the specified identifier inside the database", err}
+	} else if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a team with the specified identifier inside the database", err}
+	}
+
+	err = handler.DataStore.ConfCompute().Delete(portainer.ConfComputeID(keyID))
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to delete the team from the database", err}
+	}
+
+
+	data := "Key deleted"
+
+	return response.JSON(w, data)
 }
