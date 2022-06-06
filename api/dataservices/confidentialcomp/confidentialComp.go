@@ -13,7 +13,6 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/sirupsen/logrus"
-
 )
 
 const (
@@ -81,14 +80,17 @@ func (service *Service) Key(ID portainer.ConfComputeID) (*portainer.ConfCompute,
 // CreateKey creates a new private Key
 func (service *Service) Create(keyObject *portainer.ConfCompute) error {
 
-	// generate new rsa key
-	privatekey, err := GenerateMultiPrimeKeyForSGX(rand.Reader, 2, 3072)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Cannot generate RSA key\n")
-		return errors.New("Could not generate Key")
+	//only generate if not set
+	if keyObject.Key == nil {
+		// generate new rsa key
+		privatekey, err := GenerateMultiPrimeKeyForSGX(rand.Reader, 2, 3072)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Cannot generate RSA key\n")
+			return errors.New("Could not generate Key")
+		}
+	
+		keyObject.Key = privatekey
 	}
-
-	keyObject.Key = privatekey
 
 	return service.connection.CreateObject(
 		BucketName,

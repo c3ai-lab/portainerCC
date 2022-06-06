@@ -6,7 +6,7 @@ angular.module('portainer.app').factory('KeymanagementService', [
     'use strict';
     var service = {};
 
-    service.generateKey = function (type, description, teamIds) {
+    service.createKey = function (type, description, teamIds, pem) {
 
       var deferred = $q.defer();
 
@@ -16,6 +16,10 @@ angular.module('portainer.app').factory('KeymanagementService', [
         KeyType: type,
         Description: description,
         TeamAccessPolicies: teamAccessPolicies
+      }
+
+      if (pem) {
+        payload.PEM = pem;
       }
 
       Keymanagement.create({}, payload)
@@ -72,9 +76,8 @@ angular.module('portainer.app').factory('KeymanagementService', [
     }
 
     service.getKeys = function (type) {
-      console.log("TODO: SET TYPE ----" + type)
       var deferred = $q.defer();
-      Keymanagement.query({})
+      Keymanagement.query({ type: type })
         .$promise.then(function success(data) {
           deferred.resolve(data);
         }).catch(function error(err) {

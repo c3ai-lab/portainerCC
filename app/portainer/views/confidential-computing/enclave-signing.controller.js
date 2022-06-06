@@ -22,7 +22,7 @@ export default function enclaveSigningController(Notifications, $q, $scope, Keym
 
   $scope.formData = {
     description: "",
-    teamIds: []
+    teamIds: [],
   }
 
   this.generateKey = function () {
@@ -30,7 +30,7 @@ export default function enclaveSigningController(Notifications, $q, $scope, Keym
 
     var teamIds = $scope.formData.teamIds.map((team) => { return team.Id });
 
-    KeymanagementService.generateKey(KEY_TYPE, $scope.formData.description, teamIds)
+    KeymanagementService.createKey(KEY_TYPE, $scope.formData.description, teamIds, null)
       .then(function success() {
         Notifications.success('Success', 'New Key added!');
         $state.reload();
@@ -63,14 +63,11 @@ export default function enclaveSigningController(Notifications, $q, $scope, Keym
   }
 
   this.exportKey = function (selectedKeys) {
-    console.log("export keys")
-    console.log(selectedKeys);
-
     KeymanagementService.getKeyAsPEM(selectedKeys[0].id)
       .then(function success(data) {
         console.log(data);
-        var downloadData = new Blob([data], { type: 'application/x-pem-file' });
-        FileSaver.saveAs(downloadData, 'enclave_signing_key.pem');
+        var downloadData = new Blob([data.PEM], { type: 'text/plain' });
+        FileSaver.saveAs(downloadData, 'enclave_signing_key_' + data.Id + '.pem');
         Notifications.success('Key successfully exported');
       })
       .catch(function error(err) {
@@ -80,8 +77,23 @@ export default function enclaveSigningController(Notifications, $q, $scope, Keym
   }
 
 
-  this.importKey = function () {
-    console.log("import key")
+  this.importKey = function (file) {
+    $scope.state.actionInProgress = true;
+    readFileContent(file).then(function success(pem) {
+      var teamIds = $scope.formData.teamIds.map((team) => { return team.Id });
+
+      KeymanagementService.createKey(KEY_TYPE, $scope.formData.description, teamIds, pem)
+        .then(function success() {
+          Notifications.success('Success', 'New Key imported!');
+          $state.reload();
+        }).catch(function error(err) {
+          Notifications.error('Failure', err, 'Unable to import key');
+        })
+        .finally(function final() {
+          $scope.state.actionInProgress = false;
+        });
+    })
+
   }
 
   this.updateKeyAccess = function (key) {
@@ -104,6 +116,18 @@ export default function enclaveSigningController(Notifications, $q, $scope, Keym
 
   this.saveTempSelection = function (key) {
     tempTeamIds = key.teamsSelection.map((team) => { return team.Id })
+  }
+
+
+  function readFileContent(file) {
+    return new Promise((resolve, reject) => {
+      var fr = new FileReader();
+      fr.onload = () => {
+        resolve(fr.result);
+      }
+      fr.onerror = reject;
+      fr.readAsText(file);
+    })
   }
 
   function initView() {
