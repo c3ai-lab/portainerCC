@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/portainer/portainer/api/archive"
+	"github.com/portainer/portainer/api/dataservices"
 )
 
 type postDockerfileRequest struct {
@@ -25,7 +26,7 @@ type postDockerfileRequest struct {
 // in the request payload as JSON, the function will create a new file called Dockerfile inside a tar archive and
 // rewrite the body of the request.
 // In any other case, it will leave the request unaltered.
-func buildOperation(request *http.Request) error {
+func buildOperation(request *http.Request, dataStore dataservices.DataStore) error {
 	contentTypeHeader := request.Header.Get("Content-Type")
 
 	if !strings.Contains(contentTypeHeader, "application/json") {
