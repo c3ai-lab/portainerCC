@@ -63,14 +63,14 @@ export default function enclaveSigningController(Notifications, $q, $scope, Keym
   }
 
   this.exportKey = function (selectedKeys) {
-    console.log("export keys")
+    console.log("export keyss")
     console.log(selectedKeys);
 
     KeymanagementService.getKeyAsPEM(selectedKeys[0].id)
       .then(function success(data) {
         console.log(data);
-        var downloadData = new Blob([data], { type: 'application/x-pem-file' });
-        FileSaver.saveAs(downloadData, 'enclave_signing_key.pem');
+        var downloadData = new Blob([data.PEM], { type: 'text/plain' });
+        FileSaver.saveAs(downloadData, 'enclave_signing_key_' + data.Id + '.pem');
         Notifications.success('Key successfully exported');
       })
       .catch(function error(err) {

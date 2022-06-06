@@ -26,11 +26,11 @@ type UpdateKeyParams struct {
 	TeamAccessPolicies portainer.TeamAccessPolicies
 }
 
-// //key export strcut
-// type ExportKey struct {
-// 	Id	portainer.ConfComputeID
-// 	PEM	string
-// }
+//key export strcut
+type ExportKey struct {
+	Id	portainer.ConfComputeID
+	PEM	string
+}
 
 // @id sgxKeyGen
 // @summary Generate SGX-Key
@@ -156,9 +156,12 @@ func (handler *Handler) exportKey(w http.ResponseWriter, r *http.Request) *httpe
 		},
 	)
 
-	w.Header().Set("Content-Type","application/x-pem-file")
-	w.Write(pem);
-	return nil;
+	result := ExportKey{
+		Id: key.ID,
+		PEM: string(pem),
+	}
+
+	return response.JSON(w, result);
 }
 
 
