@@ -19,6 +19,7 @@ type KeyGenParams struct {
 	KeyType     string
 	Description string
 	TeamAccessPolicies portainer.TeamAccessPolicies
+	PEM string
 }
 
 // required parameters for key-update
@@ -59,6 +60,23 @@ func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httpe
 		TeamAccessPolicies:     params.TeamAccessPolicies,
 	}
 
+	//import or new key
+	if params.PEM != "" {
+		//rsa key from pem
+		block, _ := pem.Decode([]byte(params.PEM))
+		if block == nil {
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to decode PEM", nil}
+		}
+		
+		privKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+		if err != nil {
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to parse PEM", err}	
+		}
+		
+		keyObject.Key = privKey
+	}
+
+
 	// initialize Keygen
 	err = handler.DataStore.ConfCompute().Create(keyObject)
 
@@ -71,6 +89,9 @@ func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httpe
 
 func (handler *Handler) getKeys(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 
+	//get keytype out of query params
+	keyType, _ := request.RetrieveQueryParameter(r, "type", true)
+
 	// get all keys
 	keys, err := handler.DataStore.ConfCompute().Keys()
 
@@ -82,12 +103,14 @@ func (handler *Handler) getKeys(w http.ResponseWriter, r *http.Request) *httperr
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	filteredKeys := security.FilterKeys(keys, securityContext)
 	
-	//filter key out of objects
+	//filter private key out of objects and select only selected type 
 	result := make([]portainer.ConfCompute, 0)
 
 	for _, key := range filteredKeys {
-		key.Key = nil;
-		result = append(result, key)
+		if key.KeyType == keyType {
+			key.Key = nil;
+			result = append(result, key)
+		}
 	}
 	
 	return response.JSON(w, result)
