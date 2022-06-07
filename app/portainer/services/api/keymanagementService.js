@@ -6,12 +6,20 @@ angular.module('portainer.app').factory('KeymanagementService', [
     'use strict';
     var service = {};
 
-    service.generateKey = function (type, description, teamIds) {
+    service.createKey = function (type, description, teamIds, pem) {
+
       var deferred = $q.defer();
+
+      var teamAccessPolicies = teamIds.reduce((acc, id) => ({ ...acc, [id]: { RoleId: 0 } }), {})
+
       var payload = {
-        type: type,
-        description: description,
-        teamIds: teamIds
+        KeyType: type,
+        Description: description,
+        TeamAccessPolicies: teamAccessPolicies
+      }
+
+      if (pem) {
+        payload.PEM = pem;
       }
 
       Keymanagement.create({}, payload)
@@ -26,8 +34,11 @@ angular.module('portainer.app').factory('KeymanagementService', [
 
     service.updateTeams = function (id, teamIds) {
       var deferred = $q.defer();
+
+      var teamAccessPolicies = teamIds.reduce((acc, id) => ({ ...acc, [id]: { RoleId: 0 } }), {})
+
       var payload = {
-        teamIds: teamIds,
+        TeamAccessPolicies: teamAccessPolicies,
       };
 
       Keymanagement.update({ id: id }, payload)
@@ -40,10 +51,33 @@ angular.module('portainer.app').factory('KeymanagementService', [
       return deferred.promise;
     };
 
-    service.getKeys = function (type) {
-      console.log("TODO: SET TYPE ----" + type)
+    service.deleteKey = function (keyId) {
       var deferred = $q.defer();
-      Keymanagement.query({})
+
+      Keymanagement.delete({ id: keyId })
+        .$promise.then(function success(data) {
+          deferred.resolve(data);
+        }).catch(function error(err) {
+          deferred.reject({ msg: 'Unable to delete key', err: err })
+        })
+
+      return deferred.promise;
+    }
+
+    service.getKeyAsPEM = function (keyId) {
+      var deferred = $q.defer();
+      Keymanagement.getPEM({ id: keyId })
+        .$promise.then(function success(data) {
+          deferred.resolve(data);
+        }).catch(function error(err) {
+          deferred.reject({ msg: 'Unable to retrieve key', err: err })
+        });
+      return deferred.promise;
+    }
+
+    service.getKeys = function (type) {
+      var deferred = $q.defer();
+      Keymanagement.query({ type: type })
         .$promise.then(function success(data) {
           deferred.resolve(data);
         }).catch(function error(err) {

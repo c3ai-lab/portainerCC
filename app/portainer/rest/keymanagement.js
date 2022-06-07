@@ -4,12 +4,14 @@ angular.module('portainer.app').factory('Keymanagement', [
   function KeymanagementFactory($resource, API_ENDPOINT_KEYMANAGEMENT) {
     'use strict';
     return $resource(
-      API_ENDPOINT_KEYMANAGEMENT + '/:id/',
+      API_ENDPOINT_KEYMANAGEMENT + '/:id/:action',
       {},
       {
         create: { method: 'POST', ignoreLoadingBar: true },
-        query: { method: 'GET', isArray: true },
+        query: { method: 'GET', params: { type: '@type' }, isArray: true },
+        getPEM: { method: 'GET', params: { id: '@id' } },
         update: { method: 'PUT', params: { id: '@id' } },
+        delete: { method: 'DELETE', params: { id: '@id' } },
       }
     );
   },

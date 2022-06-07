@@ -505,12 +505,12 @@ angular
         },
       };
 
-      var enclaveSigning = {
-        name: "portainer.enclave-signing",
-        url: '/enclave-signing',
+      var keymanagement = {
+        name: "portainer.keymanagement",
+        url: '/keymanagement?type',
         views: {
           'content@':{
-            component: 'enclaveSigningView',
+            component: 'keylistView',
           }
         }
       }
@@ -554,7 +554,7 @@ angular
       $stateRegistryProvider.register(user);
       $stateRegistryProvider.register(teams);
       $stateRegistryProvider.register(team);
-      $stateRegistryProvider.register(enclaveSigning);
+      $stateRegistryProvider.register(keymanagement);
     },
   ]);
 

@@ -96,8 +96,8 @@ type (
 		ID          ConfComputeID   `json:"id"`
 		KeyType     string          `json:"keyType"`
 		Description string          `json:"description"`
-		TeamIDs     []int           `json:"teamIds"`
-		Key         *rsa.PrivateKey `json:"key"`
+		Key         *rsa.PrivateKey `json:"key,omitempty"`
+		TeamAccessPolicies TeamAccessPolicies `json:"TeamAccessPolicies" example:""`
 	}
 
 	ConfComputeID int
