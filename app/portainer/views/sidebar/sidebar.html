@@ -70,10 +70,11 @@
             data-cy="portainerSidebar-registries" title="Registries">Registries</sidebar-menu-item>
 
           <sidebar-menu label="Key Management" icon-class="fa-key fa-fw" path="#" is-sidebar-open="toggle"
-            children-paths="['portainer.enclave-signing']">
-            <sidebar-menu-item path="portainer.enclave-signing" class-name="sidebar-sublist"
-              title="Enclave Signing">Enclave Signing</sidebar-menu-item>
-            <sidebar-menu-item path="#" class-name="sidebar-sublist" title="x1">Protected Files</sidebar-menu-item>
+            children-paths="['portainer.keymanagement']">
+            <sidebar-menu-item path="portainer.keymanagement" path-params="{type: 'ENCLAVE_SIGNING_KEY'}"
+              class-name="sidebar-sublist" title="Enclave Signing">Enclave Signing</sidebar-menu-item>
+            <sidebar-menu-item path="portainer.keymanagement" path-params="{type: 'FILE_ENCRYPTION_KEY'}"
+              class-name="sidebar-sublist" title="File Encryption">File Encryption</sidebar-menu-item>
             <sidebar-menu-item path="#" class-name="sidebar-sublist" title="x2">Remote Attestation</sidebar-menu-item>
           </sidebar-menu>
 

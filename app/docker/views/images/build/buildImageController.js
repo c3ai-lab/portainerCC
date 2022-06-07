@@ -24,7 +24,7 @@ function BuildImageController($scope, $async, $window, ModalService, BuildServic
   $scope.enclaveKeys = [];
 
   $q.all({
-    keys: KeymanagementService.getKeys("coolType")
+    keys: KeymanagementService.getKeys("ENCLAVE_SIGNING_KEY")
   })
     .then(function success(data) {
       $scope.enclaveKeys = _.orderBy(data.keys, 'description', 'asc');

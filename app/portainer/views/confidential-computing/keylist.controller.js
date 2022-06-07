@@ -1,24 +1,20 @@
 import angular from 'angular';
 import _ from 'lodash-es';
 
-angular.module('portainer.app').controller('enclaveSigningController', enclaveSigningController);
+angular.module('portainer.app').controller('keylistController', keylistController);
 
 /* @ngInject */
-export default function enclaveSigningController(Notifications, $q, $scope, KeymanagementService, TeamService, $state, FileSaver) {
+export default function keylistController(Notifications, $q, $scope, KeymanagementService, TeamService, $state, FileSaver, $stateParams) {
 
   $scope.state = {
     actionInProgress: false,
   };
 
-  const KEY_TYPE = "ENCLAVE_SIGNING_KEY";
+  var KEY_TYPE = "";
+
+  $scope.keyTitle = "";
 
   var tempTeamIds = [];
-
-  this.testFunc = function () {
-    console.log($scope.formData);
-    var teamIds = $scope.formData.teamIds.map((team) => { return team.Id });
-    console.log(teamIds);
-  }
 
   $scope.formData = {
     description: "",
@@ -138,7 +134,7 @@ export default function enclaveSigningController(Notifications, $q, $scope, Keym
       .then(function success(data) {
         var keys = _.orderBy(data.keys, 'description', 'asc');
 
-        $scope.enclaveKeys = keys.map((key) => {
+        $scope.keys = keys.map((key) => {
           key.teams = angular.copy(data.teams)
 
           if (!_.isEmpty(key.TeamAccessPolicies)) {
@@ -154,7 +150,7 @@ export default function enclaveSigningController(Notifications, $q, $scope, Keym
 
         $scope.teams = _.orderBy(data.teams, 'Name', 'asc');
       }).catch(function error(err) {
-        $scope.enclaveKeys = [];
+        $scope.keys = [];
         $scope.teams = [];
         Notifications.error('Failure', err, 'Unable to retrieve keys');
       })
@@ -162,5 +158,17 @@ export default function enclaveSigningController(Notifications, $q, $scope, Keym
   }
 
 
-  initView();
+  KEY_TYPE = $stateParams.type;
+  if (KEY_TYPE == "ENCLAVE_SIGNING_KEY") {
+    $scope.keyTitle = "Enclave Signing"
+    $scope.keySubtitle = "Manage your Signing Keys to build SGX enhanced containers"
+    initView();
+  }
+  else if (KEY_TYPE == "FILE_ENCRYPTION_KEY") {
+    $scope.keyTitle = "File Encryption"
+    $scope.keySubtitle = "Manage your Keys to encrypt files"
+    initView();
+  } else {
+    $state.go('portainer.home', {}, { reload: true });
+  }
 }
