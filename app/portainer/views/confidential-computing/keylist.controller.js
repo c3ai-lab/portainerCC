@@ -52,7 +52,7 @@ export default function keylistController(Notifications, $q, $scope, Keymanageme
           })
       })
     )
-      .then(function success(data) {
+      .then(function success() {
         $scope.state.actionInProgress = false;
         $state.reload();
       })
