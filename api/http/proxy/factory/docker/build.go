@@ -32,36 +32,24 @@ type postDockerfileRequest struct {
 func buildOperation(request *http.Request, dataStore dataservices.DataStore) error {
 	contentTypeHeader := request.Header.Get("Content-Type")
 
-	var keyObject *portainer.ConfCompute
-
 	if !strings.Contains(contentTypeHeader, "application/json") {
 		params, ok := request.URL.Query()["signingKeyId"]
 		if !ok || len(params) == 0 {
 			return errors.New("missing url parameter 'signingKeyId'")
 		}
 
-		signingKeyId := params[0]
-		if signingKeyId != "0" {
-
-			// read KeyId and get keyObject from database
-			idInt, err := strconv.ParseInt(signingKeyId, 10, 64)
-
+		signingKeyIdStr := params[0]
+		if signingKeyIdStr != "0" {
+			// read signingKeyIdStr as an integer
+			signingKeyId, err := strconv.ParseInt(signingKeyIdStr, 10, 64)
 			if err != nil {
-				return errors.New("Cannot convert key id to integer")
+				return errors.New("the given signing key ID is not an integer")
 			}
 
-			keyObject, err = dataStore.ConfCompute().Key(portainer.ConfComputeID(idInt))
-
-			//generate pem
-			privKeyBytes := x509.MarshalPKCS1PrivateKey(keyObject.Key)
-			pem := pem.EncodeToMemory(
-				&pem.Block{
-					Type:  "RSA PRIVATE KEY",
-					Bytes: privKeyBytes,
-				},
-			)
-
-			setSgxSignerKeyBuildArg(request, params[0])
+			err = setSgxSignerKeyBuildArg(request, dataStore, signingKeyId)
+			if err != nil {
+				return errors.New("failed to the the SGX_SIGNER_KEY build arg")
+			}
 		}
 	}
 
@@ -83,10 +71,13 @@ func buildOperation(request *http.Request, dataStore dataservices.DataStore) err
 			return err
 		}
 		dockerfileContent = []byte(req.Content)
-		signingKeyId := strconv.FormatInt(req.SigningKeyId, 10)
 
-		if signingKeyId != "0" {
-			setSgxSignerKeyBuildArg(request, signingKeyId)
+		signingKeyId := req.SigningKeyId
+		if signingKeyId != 0 {
+			err := setSgxSignerKeyBuildArg(request, dataStore, signingKeyId)
+			if err != nil {
+				return errors.New("failed to the the SGX_SIGNER_KEY build arg")
+			}
 		}
 	}
 
@@ -99,11 +90,34 @@ func buildOperation(request *http.Request, dataStore dataservices.DataStore) err
 	request.ContentLength = int64(len(buffer))
 	request.Header.Set("Content-Type", "application/x-tar")
 
+	fmt.Printf("%+v", request)
+
 	return nil
 }
 
-func setSgxSignerKeyBuildArg(request *http.Request, signingKeyId string) {
+func setSgxSignerKeyBuildArg(request *http.Request, dataStore dataservices.DataStore, signingKeyId int64) error {
+	// get corresponding keyObject from database
+	var keyObject *portainer.ConfCompute
+	keyObject, err := dataStore.ConfCompute().Key(portainer.ConfComputeID(signingKeyId))
+	if err != nil {
+		return errors.New("failed to retreive the signing key from the data store")
+	}
+
+	// generate pem
+	privKeyBytes := x509.MarshalPKCS1PrivateKey(keyObject.Key)
+	pem := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: privKeyBytes,
+		},
+	)
+	pemStr := strings.ReplaceAll(string(pem), "\n", "\\n")
+
+	fmt.Printf("%s", pemStr)
+
 	params := request.URL.Query()
-	params.Add("buildargs", fmt.Sprintf("{\"SGX_SIGNER_KEY\":\"key #%s was selected\"}", signingKeyId))
+	params.Add("buildargs", fmt.Sprintf("{\"SGX_SIGNER_KEY\":\"%s\"}", pemStr))
 	request.URL.RawQuery = params.Encode()
+
+	return nil
 }
