@@ -2,7 +2,9 @@ package docker
 
 import (
 	"bytes"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -10,7 +12,9 @@ import (
 	"strconv"
 	"strings"
 
+	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/archive"
+	"github.com/portainer/portainer/api/dataservices"
 )
 
 type postDockerfileRequest struct {
@@ -25,8 +29,10 @@ type postDockerfileRequest struct {
 // in the request payload as JSON, the function will create a new file called Dockerfile inside a tar archive and
 // rewrite the body of the request.
 // In any other case, it will leave the request unaltered.
-func buildOperation(request *http.Request) error {
+func buildOperation(request *http.Request, dataStore dataservices.DataStore) error {
 	contentTypeHeader := request.Header.Get("Content-Type")
+
+	var keyObject *portainer.ConfCompute
 
 	if !strings.Contains(contentTypeHeader, "application/json") {
 		params, ok := request.URL.Query()["signingKeyId"]
@@ -36,6 +42,25 @@ func buildOperation(request *http.Request) error {
 
 		signingKeyId := params[0]
 		if signingKeyId != "0" {
+
+			// read KeyId and get keyObject from database
+			idInt, err := strconv.ParseInt(signingKeyId, 10, 64)
+
+			if err != nil {
+				return errors.New("Cannot convert key id to integer")
+			}
+
+			keyObject, err = dataStore.ConfCompute().Key(portainer.ConfComputeID(idInt))
+
+			//generate pem
+			privKeyBytes := x509.MarshalPKCS1PrivateKey(keyObject.Key)
+			pem := pem.EncodeToMemory(
+				&pem.Block{
+					Type:  "RSA PRIVATE KEY",
+					Bytes: privKeyBytes,
+				},
+			)
+
 			setSgxSignerKeyBuildArg(request, params[0])
 		}
 	}

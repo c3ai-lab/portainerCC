@@ -60,6 +60,7 @@ type (
 	}
 	restrictedOperationRequest func(*http.Response, *operationExecutor) error
 	operationRequest           func(*http.Request) error
+	operationDataStoreRequest  func(*http.Request, dataservices.DataStore) error
 )
 
 // NewTransport returns a pointer to a new Transport instance.
@@ -387,7 +388,7 @@ func (transport *Transport) proxyBuildRequest(request *http.Request) (*http.Resp
 	if err != nil {
 		return nil, err
 	}
-	return transport.interceptAndRewriteRequest(request, buildOperation)
+	return transport.interceptAndRewriteRequest(request, transport.dataStore, buildOperation)
 }
 
 func (transport *Transport) updateDefaultGitBranch(request *http.Request) error {
@@ -562,8 +563,8 @@ func (transport *Transport) rewriteOperation(request *http.Request, operation re
 	return transport.executeRequestAndRewriteResponse(request, operation, executor)
 }
 
-func (transport *Transport) interceptAndRewriteRequest(request *http.Request, operation operationRequest) (*http.Response, error) {
-	err := operation(request)
+func (transport *Transport) interceptAndRewriteRequest(request *http.Request, dataStore dataservices.DataStore, operation operationDataStoreRequest) (*http.Response, error) {
+	err := operation(request, dataStore)
 	if err != nil {
 		return nil, err
 	}
