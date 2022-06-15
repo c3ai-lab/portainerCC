@@ -49,7 +49,7 @@ angular.module('portainer.docker').controller('VolumesController', [
       $q.all({
         attached: VolumeService.volumes({ filters: { dangling: ['false'] } }),
         dangling: VolumeService.volumes({ filters: { dangling: ['true'] } }),
-        encrypted: VolumeService.volumes({ filters: { label: ['enc=true'] } }),
+        encrypted: VolumeService.volumes({ filters: { label: ['encrypted=true'] } }),
         services: endpointProvider === 'DOCKER_SWARM_MODE' && endpointRole === 'MANAGER' ? ServiceService.services() : [],
       })
         .then(function success(data) {

@@ -115,9 +115,12 @@ angular.module('portainer.docker').controller('CreateVolumeController', [
 
       $scope.state.actionInProgress = true;
 
-      //if gramine encryption enabled, add keyId to volumeConf
+      //if gramine encryption enabled, add encryption and key id as volume labels
       if($scope.formValues.usePF && $scope.formValues.selectedPFKey){
-        volumeConfiguration.pfKeyId = $scope.formValues.selectedPFKey.id;
+        volumeConfiguration.Labels = {
+          encrypted: "true",
+          pfEncryptionKeyId: $scope.formValues.selectedPFKey.id.toString()
+        }
       }
 
       VolumeService.createVolume(volumeConfiguration)
