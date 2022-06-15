@@ -150,9 +150,6 @@ angular.module('portainer.docker').controller('CreateVolumeController', [
           $scope.pfKeys = _.orderBy(data.keys, 'description', 'asc');
           $scope.availableVolumeDrivers = data.volumes;
 
-          console.log("jo");
-          console.log($scope.availableVolumeDrivers);
-          console.log($scope.pfKeys);
         }).catch(function error(err) {
           Notifications.error('Failure', err, 'Unable to retrieve keys or volume drivers');
         })
