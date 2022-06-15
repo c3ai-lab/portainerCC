@@ -1,6 +1,8 @@
+import _ from 'lodash-es';
 import { AccessControlFormData } from '../../../../portainer/components/accessControlForm/porAccessControlFormModel';
 import { VolumesNFSFormData } from '../../../components/volumesNFSForm/volumesNFSFormModel';
 import { VolumesCIFSFormData } from '../../../components/volumesCIFSForm/volumesCifsFormModel';
+
 
 angular.module('portainer.docker').controller('CreateVolumeController', [
   '$q',
@@ -13,7 +15,8 @@ angular.module('portainer.docker').controller('CreateVolumeController', [
   'Notifications',
   'FormValidator',
   'HttpRequestHelper',
-  function ($q, $scope, $state, VolumeService, PluginService, ResourceControlService, Authentication, Notifications, FormValidator, HttpRequestHelper) {
+  'KeymanagementService',
+  function ($q, $scope, $state, VolumeService, PluginService, ResourceControlService, Authentication, Notifications, FormValidator, HttpRequestHelper, KeymanagementService) {
     $scope.formValues = {
       Driver: 'local',
       DriverOptions: [],
@@ -21,6 +24,8 @@ angular.module('portainer.docker').controller('CreateVolumeController', [
       NodeName: null,
       NFSData: new VolumesNFSFormData(),
       CIFSData: new VolumesCIFSFormData(),
+      usePF: false,
+      selectedPFKey: null,
     };
 
     $scope.state = {
@@ -29,6 +34,7 @@ angular.module('portainer.docker').controller('CreateVolumeController', [
     };
 
     $scope.availableVolumeDrivers = [];
+    $scope.pfKeys = [];
 
     $scope.addDriverOption = function () {
       $scope.formValues.DriverOptions.push({ name: '', value: '' });
@@ -108,6 +114,12 @@ angular.module('portainer.docker').controller('CreateVolumeController', [
       HttpRequestHelper.setPortainerAgentTargetHeader(nodeName);
 
       $scope.state.actionInProgress = true;
+
+      //if gramine encryption enabled, add keyId to volumeConf
+      if($scope.formValues.usePF && $scope.formValues.selectedPFKey){
+        volumeConfiguration.pfKeyId = $scope.formValues.selectedPFKey.id;
+      }
+
       VolumeService.createVolume(volumeConfiguration)
         .then(function success(data) {
           const userId = userDetails.ID;
@@ -129,13 +141,22 @@ angular.module('portainer.docker').controller('CreateVolumeController', [
     function initView() {
       var apiVersion = $scope.applicationState.endpoint.apiVersion;
 
-      PluginService.volumePlugins(apiVersion < 1.25)
+
+      $q.all({
+        keys: KeymanagementService.getKeys("FILE_ENCRYPTION_KEY"),
+        volumes: PluginService.volumePlugins(apiVersion < 1.25)
+      })
         .then(function success(data) {
-          $scope.availableVolumeDrivers = data;
+          $scope.pfKeys = _.orderBy(data.keys, 'description', 'asc');
+          $scope.availableVolumeDrivers = data.volumes;
+
+          console.log("jo");
+          console.log($scope.availableVolumeDrivers);
+          console.log($scope.pfKeys);
+        }).catch(function error(err) {
+          Notifications.error('Failure', err, 'Unable to retrieve keys or volume drivers');
         })
-        .catch(function error(err) {
-          Notifications.error('Failure', err, 'Unable to retrieve volume drivers');
-        });
+
     }
 
     initView();

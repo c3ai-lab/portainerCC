@@ -12,6 +12,9 @@ import (
 	"github.com/portainer/libhttp/response"
 	"github.com/portainer/portainer/api/http/security"
 	portainer "github.com/portainer/portainer/api"
+
+	"fmt"
+	"os/exec"
 )
 
 // required parameters for key-creation
@@ -58,6 +61,19 @@ func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httpe
 		KeyType:     params.KeyType,
 		Description: params.Description,
 		TeamAccessPolicies:     params.TeamAccessPolicies,
+	}
+
+	if params.KeyType == "FILE_ENCRYPTION_KEY" {
+		fmt.Println("moinsen")
+		cmd := exec.Command("echo","hallo welt")
+		stdout, err := cmd.Output()
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+
+		fmt.Println("hat geklappt")
+		fmt.Println(string(stdout))
+		return response.JSON(w, "hallo")
 	}
 
 	//import or new key
