@@ -116,7 +116,7 @@ func setSgxSignerKeyBuildArg(request *http.Request, dataStore dataservices.DataS
 	fmt.Printf("%s", pemStr)
 
 	params := request.URL.Query()
-	params.Add("buildargs", fmt.Sprintf("{\"SGX_SIGNER_KEY\":\"%s\"}", pemStr))
+	params.Add("buildargs", fmt.Sprintf("{\"PORTAINER_SGX_SIGNER_KEY\":\"%s\"}", pemStr))
 	request.URL.RawQuery = params.Encode()
 
 	return nil
