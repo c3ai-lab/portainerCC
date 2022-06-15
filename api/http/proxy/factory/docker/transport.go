@@ -163,6 +163,16 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 			return nil, err
 		}
 
+		// catch /browse/put and browse/get
+		// wahrscheinlich muss das get an einer anderen stelle abgefangen werden, nachdem die response vom agent kommt um die datei zu entschlüsseln 
+
+		// put - if volume label encrypted = true, get label pfEncryptionKeyId
+		// volume, err := dockerClient.VolumeInspect(context.Background(), volumeID)
+
+		fmt.Println(r.URL.Path)
+		fmt.Println(r.Body)
+
+
 		// volume browser request
 		return transport.restrictedResourceOperation(r, resourceID, volumeName, portainer.VolumeResourceControl, true)
 	case strings.HasPrefix(requestPath, "/dockerhub"):
