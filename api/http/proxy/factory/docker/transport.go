@@ -163,18 +163,63 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 			return nil, err
 		}
 
-		// catch /browse/put and browse/get
-		// wahrscheinlich muss das get an einer anderen stelle abgefangen werden, nachdem die response vom agent kommt um die datei zu entschlüsseln 
 
-		// put - if volume label encrypted = true, get label pfEncryptionKeyId
-		// volume, err := dockerClient.VolumeInspect(context.Background(), volumeID)
+		//read operation
+		operation := path.Base(r.URL.Path)
 
-		fmt.Println(r.URL.Path)
-		fmt.Println(r.Body)
+		// decrypt parameter
+		decrypt := r.FormValue("decrypt")
 
 
+		if (operation == "get" && decrypt == "true") || operation == "put" {
+			//subrequest an den agent um label abzugreifen
+			subRequest := *r
+			subRequest.URL.Path = "/volumes/" + volumeName
+			res, err := transport.rewriteOperation(&subRequest, transport.volumeInspectOperation)
+
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			resObj, err := utils.GetResponseAsJSONObject(res)
+
+			if err != nil {
+				fmt.Println(err)
+			}
+			
+			pfKeyId := 0
+			if resObj["Labels"] != nil {
+				labels := resObj["Labels"].(map[string]interface{})
+				if val, ok := labels["encrypted"]; ok {
+					if val == "true" {
+						pfKeyId,_ = strconv.Atoi(labels["pfEncryptionKeyId"].(string))
+					}
+				}
+			}
+			
+			//check if volume is encrypted
+			if pfKeyId > 0 {
+				switch operation {
+				case "get":
+					fmt.Println("GET DECRY")
+				case "put":
+					fmt.Println("PUT DEC")
+				}
+			}
+		}
+
+
+
+		
+		
 		// volume browser request
-		return transport.restrictedResourceOperation(r, resourceID, volumeName, portainer.VolumeResourceControl, true)
+		//request an den agent weiterleiten
+		response, err := transport.restrictedResourceOperation(r, resourceID, volumeName, portainer.VolumeResourceControl, true)
+
+		// fmt.Println("WICHTIG")
+		// fmt.Println(response)
+		// fmt.Println("ENDE")
+		return response, err
 	case strings.HasPrefix(requestPath, "/dockerhub"):
 		requestPath, registryIdString := path.Split(r.URL.Path)
 
