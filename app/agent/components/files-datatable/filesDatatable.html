@@ -73,9 +73,32 @@
                 {{ item.ModTime | getisodatefromtimestamp }}
               </td>
               <td>
-                <btn authorization="DockerAgentBrowseGet" class="btn btn-xs btn-primary space-right" ng-click="$ctrl.download({ name: item.Name })" ng-if="!item.Dir">
+                
+
+                <div class="btn-group" authorization="DockerImageDelete">
+                  <button type="button" class="btn btn-xs btn-primary" ng-click="$ctrl.download({ name: item.Name })">
+                    <i class="fa fa-download" aria-hidden="true"></i> Download
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-xs btn-primary dropdown-toggle"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                  >
+                    <span class="caret"></span>
+                    <span class="sr-only">Toggle Dropdown</span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a ng-click="$ctrl.download({ name: item.Name, decrypt: true })">Decrypt and Download</a></li>
+                  </ul>
+                </div>
+
+
+
+                <!-- <btn authorization="DockerAgentBrowseGet" class="btn btn-xs btn-primary space-right" ng-click="$ctrl.download({ name: item.Name })" ng-if="!item.Dir">
                   <i class="fa fa-download" aria-hidden="true"></i> Download
-                </btn>
+                </btn> -->
                 <btn authorization="DockerAgentBrowseRename" class="btn btn-xs btn-primary space-right" ng-click="item.newName = item.Name; item.edit = true">
                   <i class="fa fa-edit" aria-hidden="true"></i> Rename
                 </btn>

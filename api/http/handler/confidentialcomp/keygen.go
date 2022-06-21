@@ -65,7 +65,7 @@ func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httpe
 
 	if params.KeyType == "FILE_ENCRYPTION_KEY" {
 		fmt.Println("moinsen")
-		cmd := exec.Command("echo","hallo welt")
+		cmd := exec.Command("gramine-sgx-pf-crypt","gen-key","-w","pfkey")
 		stdout, err := cmd.Output()
 		if err != nil {
 			fmt.Println(err.Error())
