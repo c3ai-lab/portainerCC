@@ -1,12 +1,15 @@
 package docker
 
 import (
+	"os"
+	"os/exec"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"path"
@@ -167,15 +170,49 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 		//read operation
 		operation := path.Base(r.URL.Path)
 
-		// decrypt parameter
-		decrypt := r.FormValue("decrypt")
-
+		// decrypt parameter - body ist nur einmal lesbar
+		fmt.Println("1")
+		var origBody []byte =  nil
+		if r.Body != nil {
+			origBody, _ = ioutil.ReadAll(r.Body)
+			r.Body = ioutil.NopCloser(bytes.NewReader(origBody))
+		}
+		fmt.Println("x")
+		r2 := *r.Clone(r.Context())
+		r2.Body = ioutil.NopCloser(bytes.NewReader(origBody)) 
+		fmt.Println("2")
+		// origBody := ioutil.NopCloser(bytes.NewReader(buf))
+		fmt.Println("3")
+		r.Body = ioutil.NopCloser(bytes.NewReader(origBody))
+		// fmt.Println(origBody)
+		// fmt.Println(r.Body)
+		fmt.Println("4")
+		// body := ioutil.NopCloser(bytes.NewReader(buf))
+		decrypt := r2.FormValue("decrypt")
+		fmt.Println("5")
+		// fmt.Println(origBody)
+		// decrypt := "true"
+		
+		// r.Body = origBody
 
 		if (operation == "get" && decrypt == "true") || operation == "put" {
+			// origPath := string(r.URL.Path)
+			// origMethod := string(r.Method)
+			// orig,_ := ioutil.ReadAll(r.Body)
+
+			subRequest := *r.Clone(r.Context())
+			
 			//subrequest an den agent um label abzugreifen
-			subRequest := *r
 			subRequest.URL.Path = "/volumes/" + volumeName
+			subRequest.Method = "GET"
+			subRequest.ContentLength = 0
+			subRequest.Body = nil
+
 			res, err := transport.rewriteOperation(&subRequest, transport.volumeInspectOperation)
+
+			// wieder orig request bauen body is nur einmal lesbar
+			// r.Body = ioutil.NopCloser(bytes.NewReader(orig))
+
 
 			if err != nil {
 				fmt.Println(err)
@@ -204,6 +241,35 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 					fmt.Println("GET DECRY")
 				case "put":
 					fmt.Println("PUT DEC")
+					r2.Body = ioutil.NopCloser(bytes.NewReader(origBody)) 
+					file, header, err := r2.FormFile("file")
+					defer file.Close()
+
+					fmt.Println(file)
+					fmt.Println(header)
+					fmt.Println(err)
+
+					localPath := "/upload/" + header.Filename
+					localPathOut := localPath + ".enc"
+
+					f, err := os.OpenFile(localPath, os.O_WRONLY|os.O_CREATE, 0666)
+					defer f.Close()
+					io.Copy(f, file)
+
+					// encrypt with gramine
+					cmd := exec.Command("gramine-sgx-pf-crypt","encrypt","-i", localPath, "-o", localPathOut,"-w", "/pfkey")
+					stdout, err := cmd.Output()
+					if err != nil {
+						fmt.Println(err.Error())
+					}
+
+					fmt.Println("hat geklappt")
+					fmt.Println(string(stdout))
+
+					r2.Body = ioutil.NopCloser(bytes.NewReader(origBody)) 
+					form := r2.ParseForm()
+					fmt.Println("FORM:")
+					fmt.Println(form)
 				}
 			}
 		}
