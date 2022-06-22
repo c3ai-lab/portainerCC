@@ -68,9 +68,7 @@ func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httpe
 		exec.Command("mkdir", "$HOME/portainer_pfkeys").Output()
 
 		// create private key with gramine-sgx-pf-crypt command
-		path := "$HOME/portainer_pfkeys/" + keyObject.Description + ".pem"
-		cmd := exec.Command("gramine-sgx-pf-crypt", "gen-key", "-w", path)
-		_, err := cmd.Output()
+		_, err := exec.Command("gramine-sgx-pf-crypt", "gen-key", "--wrap-key", keyObject.Description).Output()
 		if err != nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "keygeneration not successfull", err}
 		}
