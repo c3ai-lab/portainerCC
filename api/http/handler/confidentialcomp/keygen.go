@@ -35,6 +35,12 @@ type ExportKey struct {
 	PEM string
 }
 
+type PutImageParams struct {
+	Image string
+	Mrsigner string
+	Mrenclave string
+}
+
 // @id sgxKeyGen
 // @summary Generate SGX-Key
 // @description Generate a new private sgx-key
@@ -223,4 +229,26 @@ func (handler *Handler) deleteKey(w http.ResponseWriter, r *http.Request) *httpe
 	data := "Key deleted"
 
 	return response.JSON(w, data)
+}
+
+/*
+	---- Handle Images ----
+*/
+// Get Images
+func (handler *Handler) getImages(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	return &httperror.HandlerError{http.StatusBadRequest, "request body maleformed", err}
+}
+
+// Post new Image
+func (handler *Handler) putImage(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+	
+	// read parameter, create JSON object
+	var params PutImageParams
+	err := json.NewDecoder(r.Body).Decode(&params)
+
+	if err != nil {
+		return &httperror.HandlerError{http.StatusBadRequest, "request body maleformed", err}
+	}
+
+	return &httperror.HandlerError{http.StatusBadRequest, "request body maleformed", err}
 }
