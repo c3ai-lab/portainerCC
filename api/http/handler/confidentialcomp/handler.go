@@ -20,6 +20,8 @@ func NewHandler(bouncer *security.RequestBouncer) *Handler {
 	h := &Handler{
 		Router: mux.NewRouter(),
 	}
+
+	// Handle keys
 	h.Handle("/settings/keys",
 		bouncer.AdminAccess(httperror.LoggerHandler(h.sgxKeyGen))).Methods(http.MethodPost)
 
@@ -34,6 +36,16 @@ func NewHandler(bouncer *security.RequestBouncer) *Handler {
 
 	h.Handle("/settings/keys/{id}",
 		bouncer.AdminAccess(httperror.LoggerHandler(h.deleteKey))).Methods(http.MethodDelete)
+
+	// Handle images
+	h.Handle("/enclaveImage/images",
+		bouncer.AdminAccess(httperror.LoggerHandler(h.postImage))).Methods(http.MethodPost)
+
+	h.Handle("/enclaveImage/images",
+		bouncer.AdminAccess(httperror.LoggerHandler(h.getImages))).Methods(http.MethodGet)
+
+	h.Handle("/enclaveImage/images",
+		bouncer.AdminAccess(httperror.LoggerHandler(h.deleteImage))).Methods(http.MethodDelete)
 
 	return h
 }

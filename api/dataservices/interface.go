@@ -37,6 +37,7 @@ type (
 		ResourceControl() ResourceControlService
 		Role() RoleService
 		ConfCompute() ConfComputeService
+		SecImages() SecImagesService
 		APIKeyRepository() APIKeyRepository
 		Settings() SettingsService
 		SSLSettings() SSLSettingsService
@@ -191,6 +192,13 @@ type (
 		Create(keyObject *portainer.ConfCompute) error
 		Update(ID portainer.ConfComputeID, keyObject *portainer.ConfCompute) error
 		Delete(ID portainer.ConfComputeID) error
+	}
+
+	SecImagesService interface {
+		Images() ([]portainer.SecImages, error)
+		Image(ID portainer.SecImagesID) (*portainer.SecImages, error)
+		Create(imageObject *portainer.SecImages) error
+		Delete(ID portainer.SecImagesID) error
 	}
 
 	// APIKeyRepositoryService

@@ -93,14 +93,23 @@ type (
 	}
 
 	ConfCompute struct {
-		ID          ConfComputeID   `json:"id"`
-		KeyType     string          `json:"keyType"`
-		Description string          `json:"description"`
-		Key         *rsa.PrivateKey `json:"key,omitempty"`
+		ID                 ConfComputeID      `json:"id"`
+		KeyType            string             `json:"keyType"`
+		Description        string             `json:"description"`
+		Key                *rsa.PrivateKey    `json:"key,omitempty"`
 		TeamAccessPolicies TeamAccessPolicies `json:"TeamAccessPolicies" example:""`
 	}
 
 	ConfComputeID int
+
+	SecImages struct {
+		ID        SecImagesID `json:"id"`
+		Image     string      `json:"image"`
+		Mrsigner  string      `json:"mrsigner"`
+		Mrenvlave string      `json:"mrenvlave"`
+	}
+
+	SecImagesID int
 
 	// CLIFlags represents the available flags on the CLI
 	CLIFlags struct {

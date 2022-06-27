@@ -1,28 +1,27 @@
 package confidentialcomp
 
 import (
-	"encoding/json"
-	"reflect"
-	"net/http"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
+	"net/http"
+	"reflect"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
 	"github.com/portainer/libhttp/response"
-	"github.com/portainer/portainer/api/http/security"
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/http/security"
 
-	"fmt"
 	"os/exec"
 )
 
 // required parameters for key-creation
 type KeyGenParams struct {
-	KeyType     string
-	Description string
+	KeyType            string
+	Description        string
 	TeamAccessPolicies portainer.TeamAccessPolicies
-	PEM string
+	PEM                string
 }
 
 // required parameters for key-update
@@ -32,8 +31,14 @@ type UpdateKeyParams struct {
 
 //key export strcut
 type ExportKey struct {
-	Id	portainer.ConfComputeID
-	PEM	string
+	Id  portainer.ConfComputeID
+	PEM string
+}
+
+type PutImageParams struct {
+	Image     string
+	Mrsigner  string
+	Mrenclave string
 }
 
 // @id sgxKeyGen
@@ -58,22 +63,23 @@ func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httpe
 
 	// creating
 	keyObject := &portainer.ConfCompute{
-		KeyType:     params.KeyType,
-		Description: params.Description,
-		TeamAccessPolicies:     params.TeamAccessPolicies,
+		KeyType:            params.KeyType,
+		Description:        params.Description,
+		TeamAccessPolicies: params.TeamAccessPolicies,
 	}
 
 	if params.KeyType == "FILE_ENCRYPTION_KEY" {
-		fmt.Println("moinsen")
-		cmd := exec.Command("gramine-sgx-pf-crypt","gen-key","-w","pfkey")
-		stdout, err := cmd.Output()
+
+		// create default folder if not existent
+		exec.Command("mkdir", "$HOME/portainer_pfkeys").Output()
+
+		// create private key with gramine-sgx-pf-crypt command
+		_, err := exec.Command("gramine-sgx-pf-crypt", "gen-key", "--wrap-key", keyObject.Description).Output()
 		if err != nil {
-			fmt.Println(err.Error())
+			return &httperror.HandlerError{http.StatusInternalServerError, "keygeneration not successfull", err}
 		}
 
-		fmt.Println("hat geklappt")
-		fmt.Println(string(stdout))
-		return response.JSON(w, "hallo")
+		return response.JSON(w, keyObject)
 	}
 
 	//import or new key
@@ -83,15 +89,14 @@ func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httpe
 		if block == nil {
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to decode PEM", nil}
 		}
-		
+
 		privKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 		if err != nil {
-			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to parse PEM", err}	
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to parse PEM", err}
 		}
-		
+
 		keyObject.Key = privKey
 	}
-
 
 	// initialize Keygen
 	err = handler.DataStore.ConfCompute().Create(keyObject)
@@ -118,17 +123,17 @@ func (handler *Handler) getKeys(w http.ResponseWriter, r *http.Request) *httperr
 	//filter for admin or team access
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	filteredKeys := security.FilterKeys(keys, securityContext)
-	
-	//filter private key out of objects and select only selected type 
+
+	//filter private key out of objects and select only selected type
 	result := make([]portainer.ConfCompute, 0)
 
 	for _, key := range filteredKeys {
 		if key.KeyType == keyType {
-			key.Key = nil;
+			key.Key = nil
 			result = append(result, key)
 		}
 	}
-	
+
 	return response.JSON(w, result)
 }
 
@@ -187,29 +192,28 @@ func (handler *Handler) exportKey(w http.ResponseWriter, r *http.Request) *httpe
 	}
 
 	//generate pem
-	privKeyBytes := x509.MarshalPKCS1PrivateKey(key.Key);
+	privKeyBytes := x509.MarshalPKCS1PrivateKey(key.Key)
 	pem := pem.EncodeToMemory(
 		&pem.Block{
-			Type: "RSA PRIVATE KEY",
+			Type:  "RSA PRIVATE KEY",
 			Bytes: privKeyBytes,
 		},
 	)
 
 	result := ExportKey{
-		Id: key.ID,
+		Id:  key.ID,
 		PEM: string(pem),
 	}
 
-	return response.JSON(w, result);
+	return response.JSON(w, result)
 }
-
 
 func (handler *Handler) deleteKey(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
 	keyID, err := request.RetrieveNumericRouteVariableValue(r, "id")
 	if err != nil {
 		return &httperror.HandlerError{http.StatusBadRequest, "Invalid key identifier route variable", err}
 	}
-	
+
 	_, err = handler.DataStore.ConfCompute().Key(portainer.ConfComputeID(keyID))
 	if handler.DataStore.IsErrObjectNotFound(err) {
 		return &httperror.HandlerError{http.StatusNotFound, "Unable to find a team with the specified identifier inside the database", err}
@@ -222,8 +226,75 @@ func (handler *Handler) deleteKey(w http.ResponseWriter, r *http.Request) *httpe
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to delete the team from the database", err}
 	}
 
-
 	data := "Key deleted"
+
+	return response.JSON(w, data)
+}
+
+/*
+	---- Handle Images ----
+*/
+// Get Images
+func (handler *Handler) getImages(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+
+	// get all keys
+	images, err := handler.DataStore.SecImages().Images()
+
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve image sets from the database", err}
+	}
+
+	return response.JSON(w, images)
+}
+
+// Post new Image
+func (handler *Handler) postImage(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+
+	// read parameter, create JSON object
+	var params PutImageParams
+	err := json.NewDecoder(r.Body).Decode(&params)
+
+	if err != nil {
+		return &httperror.HandlerError{http.StatusBadRequest, "request body maleformed", err}
+	}
+
+	// creating
+	imageObject := &portainer.SecImages{
+		Image:     params.Image,
+		Mrsigner:  params.Mrsigner,
+		Mrenvlave: params.Mrenclave,
+	}
+
+	// initialize Keygen
+	err = handler.DataStore.SecImages().Create(imageObject)
+
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to generate new image", err}
+	}
+
+	return response.JSON(w, imageObject)
+}
+
+func (handler *Handler) deleteImage(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+
+	imageID, err := request.RetrieveNumericRouteVariableValue(r, "id")
+	if err != nil {
+		return &httperror.HandlerError{http.StatusBadRequest, "Invalid image identifier route variable", err}
+	}
+
+	_, err = handler.DataStore.SecImages().Image(portainer.SecImagesID(imageID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
+		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an image with the specified identifier inside the database", err}
+	} else if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an image with the specified identifier inside the database", err}
+	}
+
+	err = handler.DataStore.SecImages().Delete(portainer.SecImagesID(imageID))
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to delete the image from the database", err}
+	}
+
+	data := "Image deleted"
 
 	return response.JSON(w, data)
 }
