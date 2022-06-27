@@ -24,6 +24,7 @@ import (
 	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
 	"github.com/portainer/portainer/api/dataservices/role"
 	"github.com/portainer/portainer/api/dataservices/schedule"
+	secureimages "github.com/portainer/portainer/api/dataservices/secureImages"
 	"github.com/portainer/portainer/api/dataservices/settings"
 	"github.com/portainer/portainer/api/dataservices/ssl"
 	"github.com/portainer/portainer/api/dataservices/stack"
@@ -57,6 +58,7 @@ type Store struct {
 	RegistryService           *registry.Service
 	ResourceControlService    *resourcecontrol.Service
 	ConfComputeService        *confidentialcomp.Service
+	SecImagesService          *secureimages.Service
 	RoleService               *role.Service
 	APIKeyRepositoryService   *apikeyrepository.Service
 	ScheduleService           *schedule.Service
@@ -84,6 +86,12 @@ func (store *Store) initServices() error {
 		return err
 	}
 	store.ConfComputeService = confComputeService
+
+	secImagesService, err := secureimages.NewService(store.connection)
+	if err != nil {
+		return err
+	}
+	store.SecImagesService = secImagesService
 
 	customTemplateService, err := customtemplate.NewService(store.connection)
 	if err != nil {
@@ -303,6 +311,10 @@ func (store *Store) ConfCompute() dataservices.ConfComputeService {
 	return store.ConfComputeService
 }
 
+func (store *Store) SecImages() dataservices.SecImagesService {
+	return store.SecImagesService
+}
+
 // APIKeyRepository gives access to the api-key data management layer
 func (store *Store) APIKeyRepository() dataservices.APIKeyRepository {
 	return store.APIKeyRepositoryService
@@ -372,6 +384,7 @@ type storeExport struct {
 	ResourceControl    []portainer.ResourceControl    `json:"resource_control,omitempty"`
 	Role               []portainer.Role               `json:"roles,omitempty"`
 	ConfCompute        []portainer.ConfCompute        `json:"confcompute,omitempty"`
+	SecImages          []portainer.SecImages          `json:"secureimages,omitempty"`
 	Schedules          []portainer.Schedule           `json:"schedules,omitempty"`
 	Settings           portainer.Settings             `json:"settings,omitempty"`
 	SSLSettings        portainer.SSLSettings          `json:"ssl,omitempty"`

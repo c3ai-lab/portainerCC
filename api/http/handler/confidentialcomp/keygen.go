@@ -36,8 +36,8 @@ type ExportKey struct {
 }
 
 type PutImageParams struct {
-	Image string
-	Mrsigner string
+	Image     string
+	Mrsigner  string
 	Mrenclave string
 }
 
@@ -236,12 +236,20 @@ func (handler *Handler) deleteKey(w http.ResponseWriter, r *http.Request) *httpe
 */
 // Get Images
 func (handler *Handler) getImages(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	return &httperror.HandlerError{http.StatusBadRequest, "request body maleformed", err}
+
+	// get all keys
+	images, err := handler.DataStore.SecImages().Images()
+
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to retrieve image sets from the database", err}
+	}
+
+	return response.JSON(w, images)
 }
 
 // Post new Image
-func (handler *Handler) putImage(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	
+func (handler *Handler) postImage(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+
 	// read parameter, create JSON object
 	var params PutImageParams
 	err := json.NewDecoder(r.Body).Decode(&params)
@@ -250,5 +258,43 @@ func (handler *Handler) putImage(w http.ResponseWriter, r *http.Request) *httper
 		return &httperror.HandlerError{http.StatusBadRequest, "request body maleformed", err}
 	}
 
-	return &httperror.HandlerError{http.StatusBadRequest, "request body maleformed", err}
+	// creating
+	imageObject := &portainer.SecImages{
+		Image:     params.Image,
+		Mrsigner:  params.Mrsigner,
+		Mrenvlave: params.Mrenclave,
+	}
+
+	// initialize Keygen
+	err = handler.DataStore.SecImages().Create(imageObject)
+
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to generate new image", err}
+	}
+
+	return response.JSON(w, imageObject)
+}
+
+func (handler *Handler) deleteImage(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
+
+	imageID, err := request.RetrieveNumericRouteVariableValue(r, "id")
+	if err != nil {
+		return &httperror.HandlerError{http.StatusBadRequest, "Invalid image identifier route variable", err}
+	}
+
+	_, err = handler.DataStore.SecImages().Image(portainer.SecImagesID(imageID))
+	if handler.DataStore.IsErrObjectNotFound(err) {
+		return &httperror.HandlerError{http.StatusNotFound, "Unable to find an image with the specified identifier inside the database", err}
+	} else if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find an image with the specified identifier inside the database", err}
+	}
+
+	err = handler.DataStore.SecImages().Delete(portainer.SecImagesID(imageID))
+	if err != nil {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to delete the image from the database", err}
+	}
+
+	data := "Image deleted"
+
+	return response.JSON(w, data)
 }
