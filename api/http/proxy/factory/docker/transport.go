@@ -16,6 +16,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"mime/multipart"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
@@ -171,29 +172,16 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 		operation := path.Base(r.URL.Path)
 
 		// decrypt parameter - body ist nur einmal lesbar
-		fmt.Println("1")
 		var origBody []byte =  nil
 		if r.Body != nil {
 			origBody, _ = ioutil.ReadAll(r.Body)
 			r.Body = ioutil.NopCloser(bytes.NewReader(origBody))
 		}
-		fmt.Println("x")
+
 		r2 := *r.Clone(r.Context())
-		r2.Body = ioutil.NopCloser(bytes.NewReader(origBody)) 
-		fmt.Println("2")
-		// origBody := ioutil.NopCloser(bytes.NewReader(buf))
-		fmt.Println("3")
 		r.Body = ioutil.NopCloser(bytes.NewReader(origBody))
-		// fmt.Println(origBody)
-		// fmt.Println(r.Body)
-		fmt.Println("4")
-		// body := ioutil.NopCloser(bytes.NewReader(buf))
+		r2.Body = ioutil.NopCloser(bytes.NewReader(origBody)) 
 		decrypt := r2.FormValue("decrypt")
-		fmt.Println("5")
-		// fmt.Println(origBody)
-		// decrypt := "true"
-		
-		// r.Body = origBody
 
 		if (operation == "get" && decrypt == "true") || operation == "put" {
 			// origPath := string(r.URL.Path)
@@ -245,9 +233,9 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 					file, header, err := r2.FormFile("file")
 					defer file.Close()
 
-					fmt.Println(file)
-					fmt.Println(header)
-					fmt.Println(err)
+					if err != nil {
+						fmt.Println(err)
+					}
 
 					localPath := "/upload/" + header.Filename
 					localPathOut := localPath + ".enc"
@@ -265,11 +253,52 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 
 					fmt.Println("hat geklappt")
 					fmt.Println(string(stdout))
-
+					
+					//replace body
+					//Body is formdata with "Path" and "file"
 					r2.Body = ioutil.NopCloser(bytes.NewReader(origBody)) 
-					form := r2.ParseForm()
-					fmt.Println("FORM:")
-					fmt.Println(form)
+					//Path
+					formPath := r2.FormValue("Path")
+					//file
+					formFile, err := os.Open(localPathOut)
+					if err != nil {
+						fmt.Println(err)
+					}
+
+					defer formFile.Close()
+
+					newBody := &bytes.Buffer{}
+					writer := multipart.NewWriter(newBody)
+					part, _ := writer.CreateFormFile("file", localPathOut)
+					io.Copy(part, formFile)
+					part,_ = writer.CreateFormField("Path")
+					part.Write([]byte(formPath))
+					writer.Close()
+
+					//hexerei?
+					rx, err := http.NewRequest("POST", "x", newBody)
+					if err != nil {
+						fmt.Println(err)
+					}
+
+					fmt.Println("HIER")
+					// fmt.Println(&rx.Body)
+
+					r.Body = rx.Body
+					r.ContentLength = rx.ContentLength
+					r.Header.Set("Content-Type", writer.FormDataContentType())
+
+
+					// var newBody []byte = nil
+					// newBody, _ = ioutil.ReadAll(rx.Body)
+					// r.Body = ioutil.NopCloser(bytes.NewReader(newBody))
+					// r.ContentLength = rx.ContentLength
+
+					// r.Body = ioutil.NopCloser(bytes.NewReader((b).Bytes()))
+					// r.ContentLength = int64(len((newBody).Bytes()))
+
+					// r.Body = ioutil.NopCloser(bytes.NewReader(newBody.Bytes()))
+					// fmt.Println(r.Body)
 				}
 			}
 		}
