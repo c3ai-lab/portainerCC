@@ -2,7 +2,7 @@ import _ from 'lodash-es';
 
 angular.module('portainer.docker').controller('BuildImageController', BuildImageController);
 
-function BuildImageController($scope, $async, $window, ModalService, BuildService, Notifications, HttpRequestHelper, $q, KeymanagementService) {
+function BuildImageController($scope, $async, $window, ModalService, BuildService, Notifications, HttpRequestHelper, $q, KeymanagementService, VolumeService) {
   $scope.state = {
     BuildType: 'editor',
     actionInProgress: false,
@@ -17,16 +17,24 @@ function BuildImageController($scope, $async, $window, ModalService, BuildServic
     URL: '',
     Path: 'Dockerfile',
     NodeName: null,
-    enclaveSigningKey: null
+    enclaveSigningKey: null,
+    inputDir: null,
+    modelDir: null
   };
 
   //get all available enclave signing keys
   $scope.enclaveKeys = [];
 
+  //get all volumes
+  $scope.volumes = []
+
+
   $q.all({
-    keys: KeymanagementService.getKeys("ENCLAVE_SIGNING_KEY")
+    keys: KeymanagementService.getKeys("ENCLAVE_SIGNING_KEY"),
+    volumes: VolumeService.volumes({ filters: { label: ['encrypted=true'] } })
   })
     .then(function success(data) {
+      $scope.volumes = _.orderBy(data.volumes, 'Id', 'asc')
       $scope.enclaveKeys = _.orderBy(data.keys, 'description', 'asc');
     }).catch(function error(err) {
       $scope.enclaveKeys = [];
@@ -57,16 +65,18 @@ function BuildImageController($scope, $async, $window, ModalService, BuildServic
     var dockerfilePath = $scope.formValues.Path;
 
     var signingKeyId = ($scope.formValues.enclaveSigningKey.length > 0) ? $scope.formValues.enclaveSigningKey[0].id : null;
+    var modelDir = $scope.formValues.modelDir.Id
+    var inputDir = $scope.formValues.inputDir.Id
 
     if (buildType === 'upload') {
       var file = $scope.formValues.UploadFile;
-      return BuildService.buildImageFromUpload(names, file, dockerfilePath, signingKeyId);
+      return BuildService.buildImageFromUpload(names, file, dockerfilePath, signingKeyId, inputDir, modelDir);
     } else if (buildType === 'url') {
       var URL = $scope.formValues.URL;
-      return BuildService.buildImageFromURL(names, URL, dockerfilePath, signingKeyId);
+      return BuildService.buildImageFromURL(names, URL, dockerfilePath, signingKeyId, inputDir, modelDir);
     } else {
       var dockerfileContent = $scope.formValues.DockerFileContent;
-      return BuildService.buildImageFromDockerfileContent(names, dockerfileContent, signingKeyId);
+      return BuildService.buildImageFromDockerfileContent(names, dockerfileContent, signingKeyId, inputDir, modelDir);
     }
   }
 

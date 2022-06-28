@@ -70,7 +70,7 @@
               <!-- !name-input-list -->
 
               <!-- conf-compute parameters -->
-              <div class="col-sm-12 form-section-title">Environment variable</div>
+              <div class="col-sm-12 form-section-title">Confidential Computing</div>
               <!-- key-name-input -->
               <div class="col-sm-12 text-muted small">Select an enclave signing key if you want to build an sgx
                 enhanced image.<br />
@@ -91,7 +91,38 @@
                   </span>
                 </div>
               </div>
-              <!-- key-name-input -->
+
+
+              <!-- Volumes -->
+
+              <div class="col-sm-12 text-muted small py-5">Select an encrypted Volume to use during build process.
+              </div>
+
+              <div class="form-group col-md-12">
+                <div class="form-group">
+                  <label class="col-sm-3 col-md-2 control-label text-left">Input Volume</label>
+                  <div class="col-sm-9 col-md-10">
+                    <select class="form-control" ng-options="volume.Id for volume in volumes"
+                      ng-model="formValues.inputDir">
+                      <option disabled hidden value="">Select a volume</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group col-md-12">
+                <div class="form-group">
+                  <label class="col-sm-3 col-md-2 control-label text-left">Model Volume</label>
+                  <div class="col-sm-9 col-md-10">
+                    <select class="form-control" ng-options="volume.Id for volume in volumes"
+                      ng-model="formValues.modelDir">
+                      <option disabled hidden value="">Select a volume</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              
 
               <!-- build-method -->
               <div class="col-sm-12 form-section-title"> Build method </div>
