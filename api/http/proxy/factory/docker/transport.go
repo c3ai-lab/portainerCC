@@ -224,11 +224,60 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 			
 			//check if volume is encrypted
 			if pfKeyId > 0 {
+
+				//get keyId path from db
+
 				switch operation {
 				case "get":
 					fmt.Println("GET DECRY")
+					r2.Body = ioutil.NopCloser(bytes.NewReader(origBody)) 
+					fileName := r2.FormValue("path")
+					response, err := transport.restrictedResourceOperation(r, resourceID, volumeName, portainer.VolumeResourceControl, true)
+
+					localPath := "/upload/" + fileName
+					localPathOut := localPath + ".dec"
+					// response vom agent abfangen, file entschlüsseln
+					tempFile, err := os.Create(localPath)
+					if err != nil{
+						fmt.Println(err)
+					}
+					defer tempFile.Close()
+					defer response.Body.Close()
+					_, err = io.Copy(tempFile, response.Body)
+
+					//decrypt
+					cmd := exec.Command("gramine-sgx-pf-crypt","decrypt","-i", localPath, "-o", localPathOut,"-w", "/pfkey")
+					stdout, err := cmd.Output()
+					if err != nil {
+						fmt.Println(err.Error())
+					}
+
+					fmt.Println("hat geklappt")
+					fmt.Println(string(stdout))
+
+					decFile, err := os.Open(localPathOut)
+					if err != nil {
+						fmt.Println(err)
+					}
+
+					response.Body = decFile
+
+					fmt.Println(fileName)
+
+					//remove files
+					err = os.Remove(localPath)
+					if err != nil {
+						fmt.Println(err)
+					}
+					err = os.Remove(localPathOut)
+					if err != nil {
+						fmt.Println(err)
+					}
+
+					return response, err
+
 				case "put":
-					fmt.Println("PUT DEC")
+					fmt.Println("PUT ENC")
 					r2.Body = ioutil.NopCloser(bytes.NewReader(origBody)) 
 					file, header, err := r2.FormFile("file")
 					defer file.Close()
@@ -281,7 +330,6 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 						fmt.Println(err)
 					}
 
-					fmt.Println("HIER")
 					// fmt.Println(&rx.Body)
 
 					r.Body = rx.Body
@@ -289,16 +337,16 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 					r.Header.Set("Content-Type", writer.FormDataContentType())
 
 
-					// var newBody []byte = nil
-					// newBody, _ = ioutil.ReadAll(rx.Body)
-					// r.Body = ioutil.NopCloser(bytes.NewReader(newBody))
-					// r.ContentLength = rx.ContentLength
+					//remove files
+					err = os.Remove(localPath)
+					if err != nil {
+						fmt.Println(err)
+					}
+					err = os.Remove(localPathOut)
+					if err != nil {
+						fmt.Println(err)
+					}
 
-					// r.Body = ioutil.NopCloser(bytes.NewReader((b).Bytes()))
-					// r.ContentLength = int64(len((newBody).Bytes()))
-
-					// r.Body = ioutil.NopCloser(bytes.NewReader(newBody.Bytes()))
-					// fmt.Println(r.Body)
 				}
 			}
 		}
@@ -308,12 +356,8 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 		
 		
 		// volume browser request
-		//request an den agent weiterleiten
 		response, err := transport.restrictedResourceOperation(r, resourceID, volumeName, portainer.VolumeResourceControl, true)
 
-		// fmt.Println("WICHTIG")
-		// fmt.Println(response)
-		// fmt.Println("ENDE")
 		return response, err
 	case strings.HasPrefix(requestPath, "/dockerhub"):
 		requestPath, registryIdString := path.Split(r.URL.Path)

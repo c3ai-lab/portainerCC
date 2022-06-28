@@ -64,6 +64,9 @@ export class VolumeBrowserController {
     try {
       const data = await this.VolumeBrowserService.get(this.volumeId, filePath, decrypt);
       const downloadData = new Blob([data.file]);
+      if(decrypt){
+        file = file.replace(".enc", "")
+      }
       this.FileSaver.saveAs(downloadData, file);
     } catch (err) {
       this.Notifications.error('Failure', err, 'Unable to download file');
