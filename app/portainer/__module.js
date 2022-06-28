@@ -515,6 +515,16 @@ angular
         }
       }
 
+      var remoteAttestaton = {
+        name: "portainer.ra",
+        url: '/remoteattestation',
+        views: {
+          'content@': {
+            component: 'raView'
+          }
+        }
+      }
+
       $stateRegistryProvider.register(root);
       $stateRegistryProvider.register(endpointRoot);
       $stateRegistryProvider.register(portainer);
@@ -555,6 +565,7 @@ angular
       $stateRegistryProvider.register(teams);
       $stateRegistryProvider.register(team);
       $stateRegistryProvider.register(keymanagement);
+      $stateRegistryProvider.register(remoteAttestaton);
     },
   ]);
 
