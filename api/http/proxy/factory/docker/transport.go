@@ -225,7 +225,8 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 			//check if volume is encrypted
 			if pfKeyId > 0 {
 
-				//get keyId path from db
+				//get keyId path from db -------- key is file in /pfkeys
+				wrapperKey := "/pfkeys/key_" + strconv.Itoa(pfKeyId) + ".pfkey"
 
 				switch operation {
 				case "get":
@@ -246,7 +247,8 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 					_, err = io.Copy(tempFile, response.Body)
 
 					//decrypt
-					cmd := exec.Command("gramine-sgx-pf-crypt","decrypt","-i", localPath, "-o", localPathOut,"-w", "/pfkey")
+					fmt.Println("Using Key: " + wrapperKey)
+					cmd := exec.Command("gramine-sgx-pf-crypt","decrypt","-i", localPath, "-o", localPathOut,"-w", wrapperKey)
 					stdout, err := cmd.Output()
 					if err != nil {
 						fmt.Println(err.Error())
@@ -294,7 +296,8 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 					io.Copy(f, file)
 
 					// encrypt with gramine
-					cmd := exec.Command("gramine-sgx-pf-crypt","encrypt","-i", localPath, "-o", localPathOut,"-w", "/pfkey")
+					fmt.Println("Using Key: " + wrapperKey)
+					cmd := exec.Command("gramine-sgx-pf-crypt","encrypt","-i", localPath, "-o", localPathOut,"-w", wrapperKey)
 					stdout, err := cmd.Output()
 					if err != nil {
 						fmt.Println(err.Error())
