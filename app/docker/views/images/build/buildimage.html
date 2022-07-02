@@ -27,18 +27,15 @@
               <!-- !names -->
               <div class="form-group" ng-if="formValues.ImageNames.length === 0">
                 <span class="col-sm-12 text-danger small">
-                  <i class="fa fa-exclamation-triangle space-right" aria-hidden="true"></i>You must specify at least one
-                  name for the image.
+                  <i class="fa fa-exclamation-triangle space-right" aria-hidden="true"></i>You must specify at least one name for the image.
                 </span>
               </div>
               <!-- name-input-list -->
               <div ng-if="formValues.ImageNames.length > 0">
                 <div class="form-group">
                   <span class="col-sm-12 text-muted small">
-                    A name must be specified in one of the following formats: <code>name:tag</code>,
-                    <code>repository/name:tag</code> or
-                    <code>registryfqdn:port/repository/name:tag</code> format. If you omit the tag the default
-                    <b>latest</b> value is assumed.
+                    A name must be specified in one of the following formats: <code>name:tag</code>, <code>repository/name:tag</code> or
+                    <code>registryfqdn:port/repository/name:tag</code> format. If you omit the tag the default <b>latest</b> value is assumed.
                   </span>
                 </div>
                 <div class="form-group">
@@ -48,11 +45,10 @@
                         <!-- name-input -->
                         <div class="input-group col-sm-5 input-group-sm">
                           <span class="input-group-addon">name</span>
-                          <input type="text" class="form-control" ng-model="item.Name"
-                            placeholder="e.g. my-image:my-tag" auto-focus />
-                          <span class="input-group-addon"><i
-                              ng-class="{ true: 'fa fa-check green-icon', false: 'fa fa-times red-icon' }[item.Name !== '']"
-                              aria-hidden="true"></i></span>
+                          <input type="text" class="form-control" ng-model="item.Name" placeholder="e.g. my-image:my-tag" auto-focus />
+                          <span class="input-group-addon"
+                            ><i ng-class="{ true: 'fa fa-check green-icon', false: 'fa fa-times red-icon' }[item.Name !== '']" aria-hidden="true"></i
+                          ></span>
                         </div>
                         <!-- !name-input -->
                         <!-- actions -->
@@ -72,38 +68,41 @@
               <!-- conf-compute parameters -->
               <div class="col-sm-12 form-section-title">Confidential Computing</div>
               <!-- key-name-input -->
-              <div class="col-sm-12 text-muted small">Select an enclave signing key if you want to build an sgx
-                enhanced image.<br />
-                The environment variable will be set during build process and you can use $SGX_SIGNER_KEY in the editor
-                or docker file.
+              <div class="col-sm-12 text-muted small"
+                >Select an enclave signing key if you want to build an sgx enhanced image.<br />
+                The environment variable will be set during build process and you can use $PORTAINER_SGX_SIGNER_KEY in the editor or docker file.
               </div>
               <div class="col-sm-12 pt-5">
-                <div class="col-sm-4">$SGX_SIGNER_KEY:</div>
+                <div class="col-sm-4">$PORTAINER_SGX_SIGNER_KEY:</div>
                 <div class="col-sm-8">
-                  <span class="small text-muted" ng-if="$ctrl.teams.length === 0">
-                    You don't seem to have any keys. Ask your administrator to create some.
-                  </span>
+                  <span class="small text-muted" ng-if="$ctrl.teams.length === 0"> You don't seem to have any keys. Ask your administrator to create some. </span>
                   <!-- MULTI SELECT -->
-                  <span isteven-multi-select ng-if="1 > 0" input-model="enclaveKeys" selection-mode="single"
-                    output-model="formValues.enclaveSigningKey" button-label="description" item-label="description" tick-property="ticked"
-                    helper-elements="filter reset" search-property="description"
-                    translation="{nothingSelected: 'Select a Key to use', search: 'Search...'}">
+                  <span
+                    isteven-multi-select
+                    ng-if="1 > 0"
+                    input-model="enclaveKeys"
+                    selection-mode="single"
+                    output-model="formValues.enclaveSigningKey"
+                    button-label="description"
+                    item-label="description"
+                    tick-property="ticked"
+                    helper-elements="filter reset"
+                    search-property="description"
+                    translation="{nothingSelected: 'Select a Key to use', search: 'Search...'}"
+                  >
                   </span>
                 </div>
               </div>
 
-
               <!-- Volumes -->
 
-              <div class="col-sm-12 text-muted small py-5">Select an encrypted Volume to use during build process.
-              </div>
+              <div class="col-sm-12 text-muted small py-5">Select an encrypted Volume to use during build process. </div>
 
               <div class="form-group col-md-12">
                 <div class="form-group">
                   <label class="col-sm-3 col-md-2 control-label text-left">Input Volume</label>
                   <div class="col-sm-9 col-md-10">
-                    <select class="form-control" ng-options="volume.Id for volume in volumes"
-                      ng-model="formValues.inputDir">
+                    <select class="form-control" ng-options="volume.Id for volume in volumes" ng-model="formValues.inputDir">
                       <option disabled hidden value="">Select a volume</option>
                     </select>
                   </div>
@@ -114,15 +113,12 @@
                 <div class="form-group">
                   <label class="col-sm-3 col-md-2 control-label text-left">Model Volume</label>
                   <div class="col-sm-9 col-md-10">
-                    <select class="form-control" ng-options="volume.Id for volume in volumes"
-                      ng-model="formValues.modelDir">
+                    <select class="form-control" ng-options="volume.Id for volume in volumes" ng-model="formValues.modelDir">
                       <option disabled hidden value="">Select a volume</option>
                     </select>
                   </div>
                 </div>
               </div>
-
-              
 
               <!-- build-method -->
               <div class="col-sm-12 form-section-title"> Build method </div>
@@ -130,8 +126,7 @@
               <div class="form-group" style="margin-bottom: 0">
                 <div class="boxselector_wrapper">
                   <div>
-                    <input type="radio" id="method_editor" ng-model="state.BuildType" value="editor"
-                      ng-click="toggleEditor()" />
+                    <input type="radio" id="method_editor" ng-model="state.BuildType" value="editor" ng-click="toggleEditor()" />
                     <label for="method_editor">
                       <div class="boxselector_header">
                         <i class="fa fa-edit" aria-hidden="true" style="margin-right: 2px"></i>
@@ -141,8 +136,7 @@
                     </label>
                   </div>
                   <div>
-                    <input type="radio" id="method_upload" ng-model="state.BuildType" value="upload"
-                      ng-click="saveEditorContent()" />
+                    <input type="radio" id="method_upload" ng-model="state.BuildType" value="upload" ng-click="saveEditorContent()" />
                     <label for="method_upload">
                       <div class="boxselector_header">
                         <i class="fa fa-upload" aria-hidden="true" style="margin-right: 2px"></i>
@@ -152,8 +146,7 @@
                     </label>
                   </div>
                   <div>
-                    <input type="radio" id="method_url" ng-model="state.BuildType" value="url"
-                      ng-click="saveEditorContent()" />
+                    <input type="radio" id="method_url" ng-model="state.BuildType" value="url" ng-click="saveEditorContent()" />
                     <label for="method_url">
                       <div class="boxselector_header">
                         <i class="fa fa-globe" aria-hidden="true" style="margin-right: 2px"></i>
@@ -171,15 +164,17 @@
                 <div class="form-group">
                   <span class="col-sm-12 text-muted small">
                     You can get more information about Dockerfile format in the
-                    <a href="https://docs.docker.com/engine/reference/builder/" target="_blank">official
-                      documentation</a>.
+                    <a href="https://docs.docker.com/engine/reference/builder/" target="_blank">official documentation</a>.
                   </span>
                 </div>
                 <div class="form-group">
                   <div class="col-sm-12">
-                    <code-editor identifier="image-build-editor"
-                      placeholder="Define or paste the content of your Dockerfile here" yml="false"
-                      on-change="(editorUpdate)"></code-editor>
+                    <code-editor
+                      identifier="image-build-editor"
+                      placeholder="Define or paste the content of your Dockerfile here"
+                      yml="false"
+                      on-change="(editorUpdate)"
+                    ></code-editor>
                   </div>
                 </div>
               </div>
@@ -189,33 +184,27 @@
                 <div class="col-sm-12 form-section-title"> Upload </div>
                 <div class="form-group">
                   <span class="col-sm-12 text-muted small">
-                    You can upload a Dockerfile or a tar archive containing a Dockerfile from your computer. When using
-                    a tarball, the root folder will be used as the build
+                    You can upload a Dockerfile or a tar archive containing a Dockerfile from your computer. When using a tarball, the root folder will be used as the build
                     context.
                   </span>
                 </div>
                 <div class="form-group">
                   <div class="col-sm-12">
-                    <button class="btn btn-sm btn-primary" ngf-select ngf-min-size="10"
-                      ng-model="formValues.UploadFile">Select
-                      file</button>
+                    <button class="btn btn-sm btn-primary" ngf-select ngf-min-size="10" ng-model="formValues.UploadFile">Select file</button>
                     <span style="margin-left: 5px">
                       {{ formValues.UploadFile.name }}
                       <i class="fa fa-times red-icon" ng-if="!formValues.UploadFile" aria-hidden="true"></i>
                     </span>
                   </div>
                 </div>
-                <div
-                  ng-if="formValues.UploadFile.type === 'application/gzip' || formValues.UploadFile.type === 'application/x-tar'">
+                <div ng-if="formValues.UploadFile.type === 'application/gzip' || formValues.UploadFile.type === 'application/x-tar'">
                   <div class="form-group">
-                    <span class="col-sm-12 text-muted small"> Indicate the path to the Dockerfile within the tarball.
-                    </span>
+                    <span class="col-sm-12 text-muted small"> Indicate the path to the Dockerfile within the tarball. </span>
                   </div>
                   <div class="form-group">
                     <label for="image_path" class="col-sm-2 control-label text-left">Dockerfile path</label>
                     <div class="col-sm-10">
-                      <input type="text" class="form-control" ng-model="formValues.Path" id="image_path"
-                        placeholder="Dockerfile" />
+                      <input type="text" class="form-control" ng-model="formValues.Path" id="image_path" placeholder="Dockerfile" />
                     </div>
                   </div>
                 </div>
@@ -226,33 +215,34 @@
                 <div class="col-sm-12 form-section-title"> URL </div>
                 <div class="form-group">
                   <span class="col-sm-12 text-muted small">
-                    Specify the URL to a Dockerfile, a tarball or a public Git repository (suffixed by <b>.git</b>).
-                    When using a tarball or a Git repository URL, the root folder
+                    Specify the URL to a Dockerfile, a tarball or a public Git repository (suffixed by <b>.git</b>). When using a tarball or a Git repository URL, the root folder
                     will be used as the build context.
                   </span>
                 </div>
                 <div class="form-group">
                   <label for="image_url" class="col-sm-2 control-label text-left">URL</label>
                   <div class="col-sm-10">
-                    <input type="text" class="form-control" ng-model="formValues.URL" id="image_url"
-                      placeholder="https://myhost.mydomain/myimage.tar.gz or https://github.com/myname/myrepo.git#mybranch" />
+                    <input
+                      type="text"
+                      class="form-control"
+                      ng-model="formValues.URL"
+                      id="image_url"
+                      placeholder="https://myhost.mydomain/myimage.tar.gz or https://github.com/myname/myrepo.git#mybranch"
+                    />
                   </div>
                 </div>
                 <div class="form-group">
-                  <span class="col-sm-12 text-muted small"> Indicate the path to the Dockerfile within the
-                    tarball/repository (ignored when using a Dockerfile). </span>
+                  <span class="col-sm-12 text-muted small"> Indicate the path to the Dockerfile within the tarball/repository (ignored when using a Dockerfile). </span>
                 </div>
                 <div class="form-group">
                   <label for="image_path" class="col-sm-2 control-label text-left">Dockerfile path</label>
                   <div class="col-sm-10">
-                    <input type="text" class="form-control" ng-model="formValues.Path" id="image_path"
-                      placeholder="Dockerfile" />
+                    <input type="text" class="form-control" ng-model="formValues.Path" id="image_path" placeholder="Dockerfile" />
                   </div>
                 </div>
               </div>
               <!-- !url -->
-              <div
-                ng-if="applicationState.endpoint.mode.agentProxy && applicationState.endpoint.mode.provider === 'DOCKER_SWARM_MODE'">
+              <div ng-if="applicationState.endpoint.mode.agentProxy && applicationState.endpoint.mode.provider === 'DOCKER_SWARM_MODE'">
                 <div class="col-sm-12 form-section-title"> Deployment </div>
                 <!-- node-selection -->
                 <node-selector model="formValues.NodeName"> </node-selector>
@@ -262,16 +252,20 @@
               <div class="col-sm-12 form-section-title"> Actions </div>
               <div class="form-group">
                 <div class="col-sm-12">
-                  <button type="button" class="btn btn-primary btn-sm" ng-disabled="state.actionInProgress
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-sm"
+                    ng-disabled="state.actionInProgress
                     || (state.BuildType === 'upload' && (!formValues.UploadFile || !formValues.Path))
                     || (state.BuildType === 'url' && (!formValues.URL || !formValues.Path))
-                    || (formValues.ImageNames.length === 0 || !validImageNames())" ng-click="buildImage()"
-                    button-spinner="state.actionInProgress">
+                    || (formValues.ImageNames.length === 0 || !validImageNames())"
+                    ng-click="buildImage()"
+                    button-spinner="state.actionInProgress"
+                  >
                     <span ng-hide="state.actionInProgress">Build the image</span>
                     <span ng-show="state.actionInProgress">Image building in progress...</span>
                   </button>
-                  <span class="text-danger" ng-if="state.formValidationError" style="margin-left: 5px">{{
-                    state.formValidationError }}</span>
+                  <span class="text-danger" ng-if="state.formValidationError" style="margin-left: 5px">{{ state.formValidationError }}</span>
                 </div>
               </div>
               <!-- !actions -->
