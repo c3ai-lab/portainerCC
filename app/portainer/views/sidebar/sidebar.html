@@ -69,7 +69,7 @@
           <sidebar-menu-item path="portainer.registries" icon-class="fa-database fa-fw" class-name="sidebar-list"
             data-cy="portainerSidebar-registries" title="Registries">Registries</sidebar-menu-item>
 
-          <sidebar-menu label="Key Management" icon-class="fa-key fa-fw" path="#" is-sidebar-open="toggle"
+          <sidebar-menu label="Key Management" icon-class="fa-key fa-fw" path="portainer.keymanagement" path-params="{type: 'ENCLAVE_SIGNING_KEY'}" is-sidebar-open="toggle"
             children-paths="['portainer.keymanagement', 'portainer.ra']">
             <sidebar-menu-item path="portainer.keymanagement" path-params="{type: 'ENCLAVE_SIGNING_KEY'}"
               class-name="sidebar-sublist" title="Enclave Signing">Enclave Signing</sidebar-menu-item>
