@@ -1,22 +1,22 @@
 package docker
 
 import (
-	"os"
-	"os/exec"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"io"
+	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"os/exec"
 	"path"
 	"regexp"
 	"strconv"
 	"strings"
-	"mime/multipart"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
@@ -763,6 +763,21 @@ func (transport *Transport) rewriteOperation(request *http.Request, operation re
 func (transport *Transport) interceptAndRewriteRequest(request *http.Request, dataStore dataservices.DataStore, operation operationDataStoreRequest) (*http.Response, error) {
 	err := operation(request, dataStore)
 	if err != nil {
+		if err.Error() == "SGX" {
+			return &http.Response{
+				Status:        "200 OK",
+				StatusCode:    200,
+				Proto:         "HTTP/1.1",
+				ProtoMajor:    1,
+				ProtoMinor:    1,
+				Body: request.Body,
+				ContentLength: request.ContentLength,
+				Header: http.Header{
+					"api-version": {"1.41"},
+					"content-type": {"text/plain"},
+				},
+			}, nil
+		}
 		return nil, err
 	}
 
