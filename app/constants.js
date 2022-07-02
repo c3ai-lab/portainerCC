@@ -22,6 +22,7 @@ export const API_ENDPOINT_TEAM_MEMBERSHIPS = 'api/team_memberships';
 export const API_ENDPOINT_TEMPLATES = 'api/templates';
 export const API_ENDPOINT_WEBHOOKS = 'api/webhooks';
 export const API_ENDPOINT_KEYMANAGEMENT = 'api/settings/keys'
+export const API_ENDPOINT_REMOTEATTESTATION = 'api/enclaveImage/images'
 export const DEFAULT_TEMPLATES_URL = 'https://raw.githubusercontent.com/portainer/templates/master/templates.json';
 export const PAGINATION_MAX_ITEMS = 10;
 export const APPLICATION_CACHE_VALIDITY = 3600;
@@ -64,6 +65,7 @@ angular
   .constant('API_ENDPOINT_TEMPLATES', API_ENDPOINT_TEMPLATES)
   .constant('API_ENDPOINT_WEBHOOKS', API_ENDPOINT_WEBHOOKS)
   .constant('API_ENDPOINT_KEYMANAGEMENT', API_ENDPOINT_KEYMANAGEMENT)
+  .constant('API_ENDPOINT_REMOTEATTESTATION', API_ENDPOINT_REMOTEATTESTATION)
   .constant('DEFAULT_TEMPLATES_URL', DEFAULT_TEMPLATES_URL)
   .constant('PAGINATION_MAX_ITEMS', PAGINATION_MAX_ITEMS)
   .constant('APPLICATION_CACHE_VALIDITY', APPLICATION_CACHE_VALIDITY)

@@ -107,7 +107,7 @@ type (
 		Timestamp int64       `json:"timestamp"`
 		Image     string      `json:"image"`
 		Mrsigner  string      `json:"mrsigner"`
-		Mrenvlave string      `json:"mrenvlave"`
+		Mrenclave string      `json:"mrenclave"`
 	}
 
 	SecImagesID int

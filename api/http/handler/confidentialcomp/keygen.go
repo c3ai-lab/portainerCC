@@ -313,7 +313,7 @@ func (handler *Handler) postImage(w http.ResponseWriter, r *http.Request) *httpe
 		Timestamp: time.Now().Unix(),
 		Image:     params.Image,
 		Mrsigner:  params.Mrsigner,
-		Mrenvlave: params.Mrenclave,
+		Mrenclave: params.Mrenclave,
 	}
 
 	// initialize Keygen

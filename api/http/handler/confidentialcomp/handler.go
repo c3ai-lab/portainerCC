@@ -44,7 +44,7 @@ func NewHandler(bouncer *security.RequestBouncer) *Handler {
 	h.Handle("/enclaveImage/images",
 		bouncer.AdminAccess(httperror.LoggerHandler(h.getImages))).Methods(http.MethodGet)
 
-	h.Handle("/enclaveImage/images",
+	h.Handle("/enclaveImage/images/{id}",
 		bouncer.AdminAccess(httperror.LoggerHandler(h.deleteImage))).Methods(http.MethodDelete)
 
 	return h

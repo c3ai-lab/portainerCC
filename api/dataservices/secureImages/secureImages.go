@@ -32,7 +32,6 @@ func NewService(connection portainer.Connection) (*Service, error) {
 }
 
 func (service *Service) Images() ([]portainer.SecImages, error) {
-
 	var images = make([]portainer.SecImages, 0)
 
 	err := service.connection.GetAll(
@@ -40,14 +39,14 @@ func (service *Service) Images() ([]portainer.SecImages, error) {
 		&portainer.SecImages{},
 		func(obj interface{}) (interface{}, error) {
 
-			key, ok := obj.(*portainer.SecImages)
+			image, ok := obj.(*portainer.SecImages)
 			if !ok {
 				logrus.WithField("obj", obj).Errorf("Failed to convert to SecImage object")
 				return nil, fmt.Errorf("Failed to convert to SecImage object: %s", obj)
 			}
 
-			images = append(images, *key)
-			return &portainer.ConfCompute{}, nil
+			images = append(images, *image)
+			return &portainer.SecImages{}, nil
 		})
 
 	return images, err
