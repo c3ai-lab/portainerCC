@@ -6,18 +6,19 @@ import (
 	"encoding/pem"
 	"net/http"
 	"reflect"
+	"time"
 
 	"crypto/rand"
 	"crypto/rsa"
 	"errors"
-	"os"
 	"io"
-	"sync"
 	"math"
 	"math/big"
+	"os"
+	"sync"
 
-	"strconv"
 	"fmt"
+	"strconv"
 
 	httperror "github.com/portainer/libhttp/error"
 	"github.com/portainer/libhttp/request"
@@ -79,7 +80,6 @@ func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httpe
 		Description:        params.Description,
 		TeamAccessPolicies: params.TeamAccessPolicies,
 	}
-
 
 	if params.KeyType == "ENCLAVE_SIGNING_KEY" {
 		//import or new key
@@ -143,7 +143,7 @@ func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httpe
 		// }
 
 		tempKeyFile := "/pfkeys/key_" + strconv.FormatInt(int64(keyObject.ID), 10) + ".pfkey"
-		cmd := exec.Command("gramine-sgx-pf-crypt","gen-key","-w",tempKeyFile)
+		cmd := exec.Command("gramine-sgx-pf-crypt", "gen-key", "-w", tempKeyFile)
 		stdout, err := cmd.Output()
 		if err != nil {
 			fmt.Println(err.Error())
@@ -310,6 +310,7 @@ func (handler *Handler) postImage(w http.ResponseWriter, r *http.Request) *httpe
 
 	// creating
 	imageObject := &portainer.SecImages{
+		Timestamp: time.Now().Unix(),
 		Image:     params.Image,
 		Mrsigner:  params.Mrsigner,
 		Mrenvlave: params.Mrenclave,
@@ -348,9 +349,6 @@ func (handler *Handler) deleteImage(w http.ResponseWriter, r *http.Request) *htt
 
 	return response.JSON(w, data)
 }
-
-
-
 
 //best programming language ever created ##################################################################################################################################################################
 
@@ -448,7 +446,6 @@ NextSetOfPrimes:
 	priv.Precompute()
 	return priv, nil
 }
-
 
 var (
 	closedChanOnce sync.Once
