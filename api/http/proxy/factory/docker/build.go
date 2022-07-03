@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+	"time"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/archive"
@@ -190,11 +191,48 @@ func buildWithSgx(request *http.Request, dataStore dataservices.DataStore, signi
 
 	lines := strings.Split(out, "\n")
 
+	var dbname string
+	var mrenclave string
+	var mrsigner string
+
 	for _, v := range lines {
 		if v != "" {
+			//check for MRSIGNER MRENCLAVE
+			if strings.Contains(v, "mr_enclave") {
+				mrenclave = strings.TrimSpace(strings.Split(v, ":")[1])
+			}
+
+			if strings.Contains(v, "mr_signer") {
+				mrsigner = strings.TrimSpace(strings.Split(v, ":")[1])
+			}
+
 			sb.WriteString("{\"stream\":\"")
 			sb.WriteString(v)
 			sb.WriteString("\"},")
+		}
+	}
+
+	//save image into ra db
+	if mrenclave != "" && mrsigner != "" {
+		if !strings.Contains(imageName,":") {
+			dbname = fmt.Sprintf("%s:latest", imageName)
+		}
+		
+		imageObject := &portainer.SecImages{
+			Timestamp: time.Now().Unix(),
+			Image:     dbname,
+			Mrsigner:  mrsigner,
+			Mrenclave: mrenclave,
+		}
+		
+		fmt.Println("Saving RA infos...")
+		fmt.Println(imageObject)
+
+		// initialize Keygen
+		err = dataStore.SecImages().Create(imageObject)
+		if err != nil {
+			fmt.Println("Error saving mrenclave mrsigner")
+			fmt.Println(err)
 		}
 	}
 
