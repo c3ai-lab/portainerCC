@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"reflect"
 	"time"
+	"io/ioutil"
 
 	"crypto/rand"
 	"crypto/rsa"
@@ -15,6 +16,7 @@ import (
 	"math"
 	"math/big"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"fmt"
@@ -126,31 +128,39 @@ func (handler *Handler) sgxKeyGen(w http.ResponseWriter, r *http.Request) *httpe
 			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to generate new key", err}
 		}
 
-		//TODO import pfkey
-		// if params.PEM != "" {
-		// 	//rsa key from pem
-		// 	block, _ := pem.Decode([]byte(params.PEM))
-		// 	if block == nil {
-		// 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to decode PEM", nil}
-		// 	}
 
-		// 	privKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-		// 	if err != nil {
-		// 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to parse PEM", err}
-		// 	}
-
-		// 	keyObject.Key = privKey
-		// }
-
-		tempKeyFile := "/pfkeys/key_" + strconv.FormatInt(int64(keyObject.ID), 10) + ".pfkey"
-		cmd := exec.Command("gramine-sgx-pf-crypt", "gen-key", "-w", tempKeyFile)
-		stdout, err := cmd.Output()
+		//createdir if not exists
+		keyPath := filepath.Join("/","data","pfkeys")
+		err = os.MkdirAll(keyPath, os.ModePerm)
 		if err != nil {
-			fmt.Println(err.Error())
-			return &httperror.HandlerError{http.StatusInternalServerError, "keygeneration not successfull", err}
+			fmt.Println(err)
 		}
 
-		fmt.Println(stdout)
+		tempKeyFile :=  fmt.Sprintf("%s/key_%s.pfkey", keyPath, strconv.FormatInt(int64(keyObject.ID), 10))
+
+		if params.PEM != "" {
+			// response vom agent abfangen, file entschlüsseln
+			tempFile, err := os.Create(tempKeyFile)
+			if err != nil{
+				fmt.Println(err)
+			}
+			defer tempFile.Close()
+			_, err = tempFile.WriteString(params.PEM)
+			if err != nil {
+				fmt.Println(err.Error())
+				return &httperror.HandlerError{http.StatusInternalServerError, "keygeneration not successfull", err}
+			}
+
+		} else {
+			// generate new key
+			cmd := exec.Command("gramine-sgx-pf-crypt", "gen-key", "-w", tempKeyFile)
+			_, err := cmd.Output()
+			if err != nil {
+				fmt.Println(err.Error())
+				return &httperror.HandlerError{http.StatusInternalServerError, "keygeneration not successfull", err}
+			}
+		}
+
 
 		return response.JSON(w, keyObject)
 	}
@@ -241,21 +251,39 @@ func (handler *Handler) exportKey(w http.ResponseWriter, r *http.Request) *httpe
 		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a key with the specified identifier inside the database", err}
 	}
 
-	//generate pem
-	privKeyBytes := x509.MarshalPKCS1PrivateKey(key.Key)
-	pem := pem.EncodeToMemory(
-		&pem.Block{
-			Type:  "RSA PRIVATE KEY",
-			Bytes: privKeyBytes,
-		},
-	)
+	if key.KeyType == "ENCLAVE_SIGNING_KEY" {
+		//generate pem
+		privKeyBytes := x509.MarshalPKCS1PrivateKey(key.Key)
+		pem := pem.EncodeToMemory(
+			&pem.Block{
+				Type:  "RSA PRIVATE KEY",
+				Bytes: privKeyBytes,
+			},
+		)
 
-	result := ExportKey{
-		Id:  key.ID,
-		PEM: string(pem),
+		result := ExportKey{
+			Id:  key.ID,
+			PEM: string(pem),
+		}
+
+		return response.JSON(w, result)
+
+	} else if key.KeyType == "FILE_ENCRYPTION_KEY" {
+		keyfile, err := ioutil.ReadFile(fmt.Sprintf("/data/pfkeys/key_%d.pfkey", key.ID))
+		if err != nil {
+			return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a key with the specified identifier inside the database", err}
+		}
+
+		result := ExportKey{
+			Id: key.ID,
+			PEM: string(keyfile),
+		}
+
+		return response.JSON(w, result)
+	} else {
+		return &httperror.HandlerError{http.StatusInternalServerError, "Unable to find a key with the specified identifier inside the database", err}
 	}
 
-	return response.JSON(w, result)
 }
 
 func (handler *Handler) deleteKey(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
