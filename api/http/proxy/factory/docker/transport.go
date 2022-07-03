@@ -774,7 +774,7 @@ func (transport *Transport) interceptAndRewriteRequest(request *http.Request, da
 				ContentLength: request.ContentLength,
 				Header: http.Header{
 					"api-version": {"1.41"},
-					"content-type": {"text/plain"},
+					"content-type": {"application/json"},
 				},
 			}, nil
 		}

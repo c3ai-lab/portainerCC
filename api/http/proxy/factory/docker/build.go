@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"unicode"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/archive"
@@ -63,7 +64,13 @@ func buildOperation(request *http.Request, dataStore dataservices.DataStore) err
 			}
 			modelVolume := params[0]
 
-			err = buildWithSgx(request, dataStore, signingKeyId, inputVolume, modelVolume)
+			params, ok = request.URL.Query()["t"]
+			if !ok || len(params) == 0 {
+				return errors.New("missing url parameter 't'")
+			}
+			imageName := params[0]
+
+			err = buildWithSgx(request, dataStore, signingKeyId, inputVolume, modelVolume, imageName)
 			if err != nil {
 				return err
 			}
@@ -78,6 +85,7 @@ func buildOperation(request *http.Request, dataStore dataservices.DataStore) err
 	var signingKeyId int64
 	var inputVolume string
 	var modelVolume string
+	var imageName string
 
 	if contentTypeHeader == "" {
 		body, err := ioutil.ReadAll(request.Body)
@@ -94,6 +102,11 @@ func buildOperation(request *http.Request, dataStore dataservices.DataStore) err
 		signingKeyId = req.SigningKeyId
 		inputVolume = req.InputVolume
 		modelVolume = req.ModelVolume
+		params, ok := request.URL.Query()["t"]
+		if !ok || len(params) == 0 {
+			return errors.New("missing url parameter 't'")
+		}
+		imageName = params[0]
 	}
 
 	buffer, err := archive.TarFileInBuffer(dockerfileContent, "Dockerfile", 0600)
@@ -106,7 +119,7 @@ func buildOperation(request *http.Request, dataStore dataservices.DataStore) err
 	request.Header.Set("Content-Type", "application/x-tar")
 
 	if signingKeyId != 0 {
-		err := buildWithSgx(request, dataStore, signingKeyId, inputVolume, modelVolume)
+		err := buildWithSgx(request, dataStore, signingKeyId, inputVolume, modelVolume, imageName)
 		if err != nil {
 			return err
 		}
@@ -115,7 +128,7 @@ func buildOperation(request *http.Request, dataStore dataservices.DataStore) err
 	return nil
 }
 
-func buildWithSgx(request *http.Request, dataStore dataservices.DataStore, signingKeyId int64, inputVolume string, modelVolume string) error {
+func buildWithSgx(request *http.Request, dataStore dataservices.DataStore, signingKeyId int64, inputVolume string, modelVolume string, imageName string) error {
 	// get corresponding keyObject from database
 	var keyObject *portainer.ConfCompute
 	keyObject, err := dataStore.ConfCompute().Key(portainer.ConfComputeID(signingKeyId))
@@ -147,6 +160,8 @@ func buildWithSgx(request *http.Request, dataStore dataservices.DataStore, signi
 		return err
 	}
 
+	subcmd := fmt.Sprintf("cd /build/ && tar xfv docker-context && docker build -t %s .", imageName)
+
 	cmd := exec.Command(
 		"docker", "run", "--rm",
 		"-e", fmt.Sprintf("PORTAINER_SGX_SIGNER_KEY=%s", pemStr),
@@ -156,7 +171,7 @@ func buildWithSgx(request *http.Request, dataStore dataservices.DataStore, signi
 		"-v", fmt.Sprintf("%s:/build/input/", inputVolume),
 		"-v", fmt.Sprintf("%s:/build/model/", modelVolume),
 		"docker:20.10",
-		"sh", "-c", "cd /build/ && tar xfv docker-context && docker build -t testy .",
+		"sh", "-c", subcmd,
 	)
 	stdout, err := cmd.Output()
 	if err != nil {
@@ -164,9 +179,32 @@ func buildWithSgx(request *http.Request, dataStore dataservices.DataStore, signi
 		fmt.Println(err.Error())
 		return err
 	}
+	
+	var sb strings.Builder
+	out := strings.Map(func(r rune) rune {
+		       if unicode.IsGraphic(r) || r == '\n' {
+		           return r
+		       }
+			return -1
+		}, string(stdout[:]))
 
-	request.Body = ioutil.NopCloser(bytes.NewBuffer(stdout))
-	request.ContentLength = int64(len(stdout))
+	lines := strings.Split(out, "\n")
+
+	for _, v := range lines {
+		if v != "" {
+			sb.WriteString("{\"stream\":\"")
+			sb.WriteString(v)
+			sb.WriteString("\"},")
+		}
+	}
+
+	log := sb.String()
+	log = strings.TrimRight(log, ",")
+
+	logByte := []byte(log)
+
+	request.Body = ioutil.NopCloser(bytes.NewBuffer(logByte))
+	request.ContentLength = int64(len(logByte))
 
 	return errors.New("SGX")
 }
