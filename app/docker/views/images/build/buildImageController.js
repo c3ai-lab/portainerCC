@@ -64,7 +64,7 @@ function BuildImageController($scope, $async, $window, ModalService, BuildServic
     var buildType = $scope.state.BuildType;
     var dockerfilePath = $scope.formValues.Path;
 
-    var signingKeyId = ($scope.formValues.enclaveSigningKey.length > 0) ? $scope.formValues.enclaveSigningKey[0].id : null;
+    var signingKeyId = $scope.formValues.enclaveSigningKey ? $scope.formValues.enclaveSigningKey.id : null;
     var modelDir = $scope.formValues.modelDir ? $scope.formValues.modelDir.Id : null
     var inputDir = $scope.formValues.inputDir ? $scope.formValues.inputDir.Id : null
 

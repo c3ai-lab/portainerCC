@@ -68,29 +68,20 @@
               <!-- conf-compute parameters -->
               <div class="col-sm-12 form-section-title">Confidential Computing</div>
               <!-- key-name-input -->
-              <div class="col-sm-12 text-muted small"
+              <div class="col-sm-12 text-muted small py-5"
                 >Select an enclave signing key if you want to build an sgx enhanced image.<br />
                 The environment variable will be set during build process and you can use $PORTAINER_SGX_SIGNER_KEY in the editor or docker file.
               </div>
-              <div class="col-sm-12 pt-5">
-                <div class="col-sm-4">$PORTAINER_SGX_SIGNER_KEY:</div>
-                <div class="col-sm-8">
-                  <span class="small text-muted" ng-if="$ctrl.teams.length === 0"> You don't seem to have any keys. Ask your administrator to create some. </span>
-                  <!-- MULTI SELECT -->
-                  <span
-                    isteven-multi-select
-                    ng-if="1 > 0"
-                    input-model="enclaveKeys"
-                    selection-mode="single"
-                    output-model="formValues.enclaveSigningKey"
-                    button-label="description"
-                    item-label="description"
-                    tick-property="ticked"
-                    helper-elements="filter reset"
-                    search-property="description"
-                    translation="{nothingSelected: 'Select a Key to use', search: 'Search...'}"
-                  >
-                  </span>
+
+
+              <div class="form-group col-md-12">
+                <div class="form-group">
+                  <label class="col-sm-4 col-md-3 control-label text-left">$PORTAINER_SGX_SIGNER_KEY</label>
+                  <div class="col-sm-8 col-md-9">
+                    <select class="form-control" ng-options="key.description for key in enclaveKeys" ng-model="formValues.enclaveSigningKey">
+                      <option value="">Select a key</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -100,10 +91,10 @@
 
               <div class="form-group col-md-12">
                 <div class="form-group">
-                  <label class="col-sm-3 col-md-2 control-label text-left">Input Volume</label>
-                  <div class="col-sm-9 col-md-10">
+                  <label class="col-sm-4 col-md-3 control-label text-left">Input Volume</label>
+                  <div class="col-sm-8 col-md-9">
                     <select class="form-control" ng-options="volume.Id for volume in volumes" ng-model="formValues.inputDir">
-                      <option disabled hidden value="">Select a volume</option>
+                      <option value="">Select a volume</option>
                     </select>
                   </div>
                 </div>
@@ -111,10 +102,10 @@
 
               <div class="form-group col-md-12">
                 <div class="form-group">
-                  <label class="col-sm-3 col-md-2 control-label text-left">Model Volume</label>
-                  <div class="col-sm-9 col-md-10">
+                  <label class="col-sm-4 col-md-3 control-label text-left">Model Volume</label>
+                  <div class="col-sm-8 col-md-9">
                     <select class="form-control" ng-options="volume.Id for volume in volumes" ng-model="formValues.modelDir">
-                      <option disabled hidden value="">Select a volume</option>
+                      <option value="">Select a volume</option>
                     </select>
                   </div>
                 </div>
