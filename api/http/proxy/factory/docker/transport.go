@@ -226,7 +226,7 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 			if pfKeyId > 0 {
 
 				//get keyId path from db -------- key is file in /pfkeys
-				wrapperKey := "/pfkeys/key_" + strconv.Itoa(pfKeyId) + ".pfkey"
+				wrapperKey := "/data/pfkeys/key_" + strconv.Itoa(pfKeyId) + ".pfkey"
 
 				switch operation {
 				case "get":
@@ -235,7 +235,7 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 					fileName := r2.FormValue("path")
 					response, err := transport.restrictedResourceOperation(r, resourceID, volumeName, portainer.VolumeResourceControl, true)
 
-					localPath := "/upload/" + fileName
+					localPath := "/data/" + fileName
 					localPathOut := localPath + ".dec"
 					// response vom agent abfangen, file entschlüsseln
 					tempFile, err := os.Create(localPath)
@@ -288,7 +288,7 @@ func (transport *Transport) proxyAgentRequest(r *http.Request) (*http.Response, 
 						fmt.Println(err)
 					}
 
-					localPath := "/upload/" + header.Filename
+					localPath := "/data/" + header.Filename
 					localPathOut := localPath + ".enc"
 
 					f, err := os.OpenFile(localPath, os.O_WRONLY|os.O_CREATE, 0666)
