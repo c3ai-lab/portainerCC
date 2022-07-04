@@ -14,8 +14,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	"unicode"
 	"time"
+	"unicode"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/archive"
@@ -161,14 +161,13 @@ func buildWithSgx(request *http.Request, dataStore dataservices.DataStore, signi
 		return err
 	}
 
-	subcmd := fmt.Sprintf("cd /build/ && tar xfv docker-context && docker build -t %s .", imageName)
+	subcmd := fmt.Sprintf("cd /build/ && tar xf /tmp/docker-context -C /build/ && docker build --no-cache --build-arg PORTAINER_SGX_SIGNER_KEY=\"%s\" -t %s .", pemStr, imageName)
 
 	cmd := exec.Command(
 		"docker", "run", "--rm",
-		"-e", fmt.Sprintf("PORTAINER_SGX_SIGNER_KEY=%s", pemStr),
 		"-v", "/var/run/docker.sock:/var/run/docker.sock:z",
 		"-v", "/var/run/docker.sock:/var/run/alternative.sock:z",
-		"-v", "/tmp/docker-context:/build/docker-context",
+		"-v", "/tmp/docker-context:/tmp/docker-context",
 		"-v", fmt.Sprintf("%s:/build/input/", inputVolume),
 		"-v", fmt.Sprintf("%s:/build/model/", modelVolume),
 		"docker:20.10",
@@ -180,14 +179,14 @@ func buildWithSgx(request *http.Request, dataStore dataservices.DataStore, signi
 		fmt.Println(err.Error())
 		return err
 	}
-	
+
 	var sb strings.Builder
 	out := strings.Map(func(r rune) rune {
-		       if unicode.IsGraphic(r) || r == '\n' {
-		           return r
-		       }
-			return -1
-		}, string(stdout[:]))
+		if unicode.IsGraphic(r) || r == '\n' {
+			return r
+		}
+		return -1
+	}, string(stdout[:]))
 
 	lines := strings.Split(out, "\n")
 
@@ -206,25 +205,31 @@ func buildWithSgx(request *http.Request, dataStore dataservices.DataStore, signi
 				mrsigner = strings.TrimSpace(strings.Split(v, ":")[1])
 			}
 
+			v = strings.ReplaceAll(v, "\b", "")
+			v = strings.ReplaceAll(v, "\r", "")
+			v = strings.ReplaceAll(v, "\n", "")
+			v = strings.ReplaceAll(v, "\\", "\\\\")
+			v = strings.ReplaceAll(v, "\"", "\\\"")
+
 			sb.WriteString("{\"stream\":\"")
 			sb.WriteString(v)
-			sb.WriteString("\"},")
+			sb.WriteString("\"}\n")
 		}
 	}
 
 	//save image into ra db
 	if mrenclave != "" && mrsigner != "" {
-		if !strings.Contains(imageName,":") {
+		if !strings.Contains(imageName, ":") {
 			dbname = fmt.Sprintf("%s:latest", imageName)
 		}
-		
+
 		imageObject := &portainer.SecImages{
 			Timestamp: time.Now().Unix(),
 			Image:     dbname,
 			Mrsigner:  mrsigner,
 			Mrenclave: mrenclave,
 		}
-		
+
 		fmt.Println("Saving RA infos...")
 		fmt.Println(imageObject)
 
@@ -237,8 +242,6 @@ func buildWithSgx(request *http.Request, dataStore dataservices.DataStore, signi
 	}
 
 	log := sb.String()
-	log = strings.TrimRight(log, ",")
-
 	logByte := []byte(log)
 
 	request.Body = ioutil.NopCloser(bytes.NewBuffer(logByte))
