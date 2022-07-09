@@ -1,8 +1,15 @@
 ## Umfang
 
-You can try out the public demo instance: http://demo.portainer.io/ (login with the username **admin** and the password **tryportainer**).
+Im Laufe des Projektzeitraumes haben wir versucht Portainer um den Umgang mit enclavierten Containern mithilfe von gramine zu erweitern.
+Aufgrund der Komplexität und der größe der Arbeitsgruppe haben wir folgende Ziele umgesetzt und Bedingungen für den Workflow für gegeben genommen:
 
-Please note that the public demo cluster is **reset every 15min**.
+- es wurde die Möglichkeit eingebaut, Signing Keys zu erstellen und in der Datenbank zu speichern (RSA Schlüssel)
+- es wurde die Möglichkeit eingebaut, Keys für gramine encrypted files zu erstellen und in der Datenbank zu speichern (der Schlüssel liegt als .pfkey File im Filesystem, Metadaten sind in der DB - hierfür wurde gramine genutzt)
+- es wurden encrypted Volumes vollständig eingeführt. Diese stehen jedoch nur unter einem Edgeless Agenten zur Verfügung
+- (EDGELESS AGENT - VOLUME) Dateien können hochgeladen werden und werden mithilfe von gramine verschlüsselt
+- (EDGELESS AGENT - VOLUME) Dateien können heruntergeladen werden (verschlüsselt) oder on-the-fly entschlüsselt werden (hierfür wird die Datei mithilfe von gramine entschlüsselt und zum Download weitergeleitet)
+- es wurde eine Ansicht für die Remote Attestation vorbereitet. Hier sind alle Images aufgelistet, welche mithilfe von gramine gebaut werden (mr_enclave und mr_signer werden aus dem Buildlog in der Datenbank mit dem Imagename/Zeitstempel persistiert)
+- der Build Prozess wurde angepasst: (LOCAL ENVIRONMENT) es wird in einem Subcontainer (Docker in Docker) ein Build angestoßen und ein Signing Key sowie zwei Volumes gemountet - aufgrund der geplanten Umsetzung von pytorch input und model
 
 ## Anleitung
 
