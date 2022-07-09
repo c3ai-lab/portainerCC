@@ -47,7 +47,7 @@ Der Edge Agent ist notwendig um die Browse (upload/download encrypted/decrypted)
 
 ## How to - Änderungen/Erfahrungen
 
-Frontend:
+# Frontend:
 
 Im Frontend wird Angularjs (deprecated) genutzt.
 
@@ -78,7 +78,7 @@ Um die viel genutzen Datatables (Listen) nutzen zu können muss unter app/compon
 
 
 
-Backend:
+# Backend:
 
 Das Backend ist in GOlang geschrieben und stellt einen Webservice (API) für das Frontend bereit.
 Als Datenbank dient BoldDB (key-value Files, also kein vollwertiges DBMS).
@@ -97,7 +97,7 @@ Hier musste z.B. ein Abfangen des Requests eingebaut werden um hochgeladene Date
 
 
 
-Erfahrungen:
+# Erfahrungen:
 
 Wie bereits erwähnt sind viele Punkte mit etwas einlesen nachvollziehbar (z.B. Handler in GO oder Views in Anuglarjs).
 Schwierig erwies sich, alle Dinge "unter einen Hut" zu bekommen wie zum Beispiel
