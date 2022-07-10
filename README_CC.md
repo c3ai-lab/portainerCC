@@ -10,6 +10,8 @@ Aufgrund der Komplexität und der größe der Arbeitsgruppe haben wir folgende Z
 - (EDGE AGENT - VOLUME) Dateien können heruntergeladen werden (verschlüsselt) oder on-the-fly entschlüsselt werden (hierfür wird die Datei mithilfe von gramine entschlüsselt und zum Download weitergeleitet)
 - es wurde eine Ansicht für die Remote Attestation vorbereitet. Hier sind alle Images aufgelistet, welche mithilfe von gramine gebaut werden (mr_enclave und mr_signer werden aus dem Buildlog in der Datenbank mit dem Imagename/Zeitstempel persistiert)
 - der Build Prozess wurde angepasst: (LOCAL ENVIRONMENT) es wird in einem Subcontainer (Docker in Docker) ein Build angestoßen und ein Signing Key sowie zwei Volumes gemountet - aufgrund der geplanten Umsetzung von pytorch input und model
+- der Signing Key ist nutzbar indem ARG ARG PORTAINER_SGX_SIGNER_KEY im Dockerfile steht (danach z.B. RUN echo $PORTAINER_SGX_SIGNER_KEY)
+- die beiden Volumes sind unter /build/input und /build/model gemountet
 
 ## Anleitung
 
